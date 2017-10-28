@@ -1,0 +1,2 @@
+D:\workspace\project\ZStart\Lib\ZStart.Core.dll
+D:\workspace\project\ZStart\ZStart.Core\obj\Release\ZStart.Core.dll
