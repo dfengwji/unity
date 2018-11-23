@@ -229,7 +229,7 @@ namespace ZStart.Core.Controller
             {
                 if (disposing)
                 {
-                    DestroyObject(gameObject);
+                    Destroy(gameObject);
                 }
             }
             _disposed = true;

@@ -1,8 +1,8 @@
-﻿using IVRApp.Core.Util;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
+using ZStart.Core;
 
 namespace IVRApp.Core.Manager
 {
@@ -186,7 +186,7 @@ namespace IVRApp.Core.Manager
             string val = GetString(key, type);
             if (val == null)
             {
-                VLog.Warning("can not find the key = " + key + " in local language!!!!");
+                ZLog.Warning("can not find the key = " + key + " in local language!!!!");
                 return "";
             }
             return string.Format(val, args);

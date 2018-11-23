@@ -24,7 +24,7 @@ namespace ZStart.Core.Common
         public NotifyEvent() { }
     }
 
-    internal class NotifyObject<T>
+    public class NotifyObject<T>
     {
         public int notify;
         public GameObject target;
@@ -35,16 +35,78 @@ namespace ZStart.Core.Common
         }
     }
 
+    internal class NotifySet<T>
+    {
+        public int notify = 0;
+        private List<NotifyData<T>> set = null;
+
+        public NotifySet()
+        {
+            set = new List<NotifyData<T>>();
+        }
+
+        public void RemoveData(GameObject target)
+        {
+            for (int i = 0;i < set.Count;i++)
+            {
+                if (set[i].target != null && set[i].target == target)
+                {
+                    set.RemoveAt(i);
+                    break;
+                }
+            }
+        }
+
+        public void ExceteAction(GameObject target,T data)
+        {
+            for (int i = 0; i < set.Count; i++)
+            {
+                if (set[i].target == target && set[i].target.activeSelf)
+                {
+                    set[i].uEvent.Invoke(data);
+                    break;
+                }
+            }
+        }
+
+        public void ExceteAction(T data)
+        {
+            for (int i = 0; i < set.Count; i++)
+            {
+                if (set[i].target == null)
+                {
+                    set[i].uEvent.Invoke(data);
+                }
+                else
+                {
+                    if (set[i].target.activeSelf)
+                        set[i].uEvent.Invoke(data);
+                }
+            }
+        }
+
+        public void Clear()
+        {
+            notify = 0;
+            set.Clear();
+        }
+
+        public void AddData(NotifyData<T> data)
+        {
+            set.Add(data);
+        }
+    }
+
     public class NotifyProxy<T>
     {
-        private Dictionary<int, List<NotifyData<T>>> notifyDic = null;
         private List<NotifyObject<T>> notifyList;
         private List<NotifyObject<T>> cacheNotifys;
+        private List<NotifySet<T>> registerSets;
         public NotifyProxy()
         {
-            notifyDic = new Dictionary<int, List<NotifyData<T>>>();
             notifyList = new List<NotifyObject<T>>();
             cacheNotifys = new List<NotifyObject<T>>();
+            registerSets = new List<NotifySet<T>>();
         }
 
         public void UpdateNotify()
@@ -68,39 +130,36 @@ namespace ZStart.Core.Common
             }
         }
 
+        private NotifySet<T> GetNotifySet(int notify)
+        {
+            for (int i = 0;i < registerSets.Count;i++)
+            {
+                if (registerSets[i].notify == notify)
+                {
+                    return registerSets[i];
+                }
+            }
+            return null;
+        }
+
         public void AddNotify(int notify, GameObject target, UnityAction<T> action)
         {
-            List<NotifyData<T>> list = null;
-            if (notifyDic.ContainsKey(notify))
+            NotifySet<T> set = GetNotifySet(notify);
+            if (set == null)
             {
-                list = notifyDic[notify];
-                for (int i = 0; i < list.Count; i++)
-                {
-                    if (list[i].target == target)
-                    {
-                        list[i].uEvent.RemoveListener(action);
-                        list[i].uEvent.AddListener(action);
-                        return;
-                    }
-                }
-                NotifyData<T> info = new NotifyData<T>();
-                info.target = target;
-                info.notify = notify;
-                info.uEvent = new NotifyEvent<T>();
-                info.uEvent.AddListener(action);
-                list.Add(info);
+                set = new NotifySet<T>();
+                registerSets.Add(set);
             }
             else
             {
-                list = new List<NotifyData<T>>();
-                NotifyData<T> info = new NotifyData<T>();
-                info.target = target;
-                info.notify = notify;
-                info.uEvent = new NotifyEvent<T>();
-                info.uEvent.AddListener(action);
-                list.Add(info);
-                notifyDic.Add(notify, list);
+                set.RemoveData(target);
             }
+            NotifyData<T> info = new NotifyData<T>();
+            info.target = target;
+            info.notify = notify;
+            info.uEvent = new NotifyEvent<T>();
+            info.uEvent.AddListener(action);
+            set.AddData(info);
         }
 
         public void AddNotify(int notify, UnityAction<T> action)
@@ -110,71 +169,40 @@ namespace ZStart.Core.Common
 
         public void RemoveNotify(int notify, GameObject target)
         {
-            if (notifyDic.ContainsKey(notify))
+            NotifySet<T> set = GetNotifySet(notify);
+            if (set != null)
             {
-                List<NotifyData<T>> list = notifyDic[notify];
-                for (int i = 0; i < list.Count; i++)
-                {
-                    if (list[i].target == target)
-                    {
-                        list[i].Clear();
-                        list.RemoveAt(i);
-                        break;
-                    }
-                }
+                set.RemoveData(target);
             }
         }
 
         public void RemoveNotify(int notify)
         {
-            if (notifyDic.ContainsKey(notify))
+            for (int i = 0; i < registerSets.Count; i++)
             {
-                List<NotifyData<T>> list = notifyDic[notify];
-                for (int i = 0; i < list.Count; i++)
+                if (registerSets[i].notify == notify)
                 {
-                    list[i].Clear();
+                    registerSets.RemoveAt(i);
+                    return;
                 }
-                list.Clear();
-                notifyDic.Remove(notify);
             }
         }
 
         public void ExcuteAction(int notify, GameObject target, T data)
         {
-            if (notifyDic.ContainsKey(notify))
+            NotifySet<T> set = GetNotifySet(notify);
+            if (set != null)
             {
-                List<NotifyData<T>> list = notifyDic[notify];
-                for (int i = 0; i < list.Count; i++)
-                {
-                    if (list[i].target == target && list[i].target.activeInHierarchy)
-                    {
-                        list[i].uEvent.Invoke(data);
-                        break;
-                    }
-                }
+                set.ExceteAction(target, data);
             }
         }
 
         public void ExcuteAction(int notify, T data)
         {
-            if (notifyDic.ContainsKey(notify))
+            NotifySet<T> set = GetNotifySet(notify);
+            if (set != null)
             {
-                List<NotifyData<T>> list = notifyDic[notify];
-                for (int i = 0; i < list.Count; i++)
-                {
-                    NotifyData<T> act = list[i];
-                    if (act.target == null)
-                    {
-                        act.uEvent.Invoke(data);
-                    }
-                    else
-                    {
-
-                        if (act.target.activeInHierarchy)
-                            act.uEvent.Invoke(data);
-                    }
-
-                }
+                set.ExceteAction(data);
             }
         }
 

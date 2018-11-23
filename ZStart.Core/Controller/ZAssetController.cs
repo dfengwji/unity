@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
-using ZStart.Core.Model;
+using UnityEngine.Events;
 using ZStart.Core.Enum;
 using ZStart.Core.Manager;
-using UnityEngine.Events;
+using ZStart.Core.Model;
 
 namespace ZStart.Core.Controller
 {
@@ -150,16 +150,14 @@ namespace ZStart.Core.Controller
             yield return null;
             progress(1f);
             yield return null;
-            if(complete != null)
-                complete();
+            complete?.Invoke();
         }
 
         public AudioClip GetAudioClip(int bundle, string path)
         {
             try
             {
-                AudioClip clip;
-                soundDic.TryGetValue(path, out clip);
+                soundDic.TryGetValue(path, out AudioClip clip);
                 if (clip == null)
                 {
                     if(bundle > 0)
@@ -646,7 +644,7 @@ namespace ZStart.Core.Controller
             {
                 PoolObjectInfo info = assetList[i];
                
-                if (info.component != null && !info.gameObject.activeInHierarchy && info.transform.parent == mTransform)
+                if (info.component != null && !info.gameObject.activeInHierarchy && info.name == typeof(T).Name && info.transform.parent == mTransform)
                 {
                     if (typeof(T) == info.component.GetType() || info.component.GetType().IsSubclassOf(typeof(T)))
                     {
@@ -813,12 +811,14 @@ namespace ZStart.Core.Controller
             if (prefab == null)
                 return;
             Transform target = Instantiate(prefab);
-            PoolObjectInfo info = new PoolObjectInfo();
-            info.asset = path;
-            info.name = uname;
-            info.gameObject = target.gameObject;
-            info.transform = target;
-            info.component = target.GetComponent<ZUIBehaviour>();
+            PoolObjectInfo info = new PoolObjectInfo
+            {
+                asset = path,
+                name = uname,
+                gameObject = target.gameObject,
+                transform = target,
+                component = target.GetComponent<ZUIBehaviour>()
+            };
             if (info.component == null)
                 info.component = target.GetComponent<ZBehaviourBase>();
 
@@ -845,12 +845,14 @@ namespace ZStart.Core.Controller
                 return null;
             }
             T clone = Instantiate<T>(prefab);
-            PoolObjectInfo info = new PoolObjectInfo();
-            info.asset = path;
-            info.name = uname;
-            info.gameObject = clone.gameObject;
-            info.transform = clone.transform;
-            info.component = clone;
+            PoolObjectInfo info = new PoolObjectInfo
+            {
+                asset = path,
+                name = uname,
+                gameObject = clone.gameObject,
+                transform = clone.transform,
+                component = clone
+            };
             assetList.Add(info);
             return clone;
         }
