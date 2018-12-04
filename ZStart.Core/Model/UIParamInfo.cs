@@ -1,5 +1,4 @@
-﻿using ZStart.Core.Enum;
-namespace ZStart.Core.Model
+﻿namespace ZStart.Core.Model
 {
     [System.Serializable]
     public struct UIParamInfo
@@ -7,6 +6,7 @@ namespace ZStart.Core.Model
         public string parent;
         public int type;
         public string uid;
+        public string identify;
         public long id;
         public object param1;
         public object param2;

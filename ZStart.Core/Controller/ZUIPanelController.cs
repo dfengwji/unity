@@ -338,12 +338,12 @@ namespace ZStart.Core.Controller
                 ZUIPanel tmp = panel as ZUIPanel;
                 if (panel.isOpen)
                 {
-                    panel.Open(tmp.info);
+                    panel.Open(tmp.Info);
                 }
                 else
                 {
                     panel.WakenUp();
-                    panel.DelayOpen(tmp.info);
+                    panel.DelayOpen(tmp.Info);
                 }
                 panel.UpdateDepth(PanelDepthType.Top);
                 _currentPanel = panel as ZUIPanel;

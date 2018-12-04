@@ -1,5 +1,9 @@
 ﻿using System;
 using System.Collections;
+using System.IO;
+using System.Security.Cryptography;
+using System.Text;
+using UnityEngine;
 
 namespace ZStart.Core.Util
 {
@@ -85,7 +89,7 @@ namespace ZStart.Core.Util
             a += b;
         }
 
-        private static void MD5_Init()
+        private static void MD5Init()
         {
             A = 0x67452301;  //in memory, this is 0x01234567
             B = 0xefcdab89;  //in memory, this is 0x89abcdef
@@ -93,7 +97,7 @@ namespace ZStart.Core.Util
             D = 0x10325476;  //in memory, this is 0x76543210
         }
 
-        private static UInt32[] MD5_Append(byte[] input)
+        private static UInt32[] MD5Append(byte[] input)
         {
             int zeros = 0;
             int ones = 1;
@@ -156,7 +160,7 @@ namespace ZStart.Core.Util
             }
             return output;
         }
-        private static UInt32[] MD5_Trasform(UInt32[] x)
+        private static UInt32[] MD5Trasform(UInt32[] x)
         {
 
             UInt32 a, b, c, d;
@@ -249,9 +253,9 @@ namespace ZStart.Core.Util
         }
         public static byte[] MD5Array(byte[] input)
         {
-            MD5_Init();
-            UInt32[] block = MD5_Append(input);
-            UInt32[] bits = MD5_Trasform(block);
+            MD5Init();
+            UInt32[] block = MD5Append(input);
+            UInt32[] bits = MD5Trasform(block);
 
             /* Encodes bits (UInt32[]) into output (byte[]). Assumes len is
              * a multiple of 4.
@@ -267,7 +271,7 @@ namespace ZStart.Core.Util
             return output;
         }
 
-        public static string ArrayToHexString(byte[] array, bool uppercase)
+        public static string ByteToHex(byte[] array, bool uppercase = false)
         {
             string hexString = "";
             string format = "x2";
@@ -282,7 +286,7 @@ namespace ZStart.Core.Util
             return hexString;
         }
 
-        public static string MDString(string message)
+        public static string MD5String(string message)
         {
             char[] c = message.ToCharArray();
             byte[] b = new byte[c.Length];
@@ -291,34 +295,45 @@ namespace ZStart.Core.Util
                 b[i] = (byte)c[i];
             }
             byte[] digest = MD5Array(b);
-            return ArrayToHexString(digest, false);
+            return ByteToHex(digest, false);
         }
 
-        //public static string MDFile(string fileName)
-        //{
-        //    FileStream fs = File.Open(fileName, FileMode.Open, FileAccess.Read);
-        //    byte[] array = new byte[fs.Length];
-        //    fs.Read(array, 0, (int)fs.Length);
-        //    byte[] digest = MD5Array(array);
-        //    fs.Close();
-        //    return ArrayToHexString(digest, false);
-        //}
-
-        public static string Test(string message)
+        public static string ToMD5(string msg)
         {
-            return "\r\nMD5 (\"" + message + "\") = " + MD5Util.MDString(message);
+            MD5 md5 = new MD5CryptoServiceProvider();
+            byte[] fromData = Encoding.Default.GetBytes(msg);
+            byte[] targetData = md5.ComputeHash(fromData);
+            return ByteToHex(targetData);
         }
-        public static string TestSuite()
+
+        public static string ToMD5(byte[] bytes)
         {
-            string s = "";
-            s += Test("");
-            s += Test("a");
-            s += Test("abc");
-            s += Test("message digest");
-            s += Test("abcdefghijklmnopqrstuvwxyz");
-            s += Test("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
-            s += Test("12345678901234567890123456789012345678901234567890123456789012345678901234567890");
-            return s;
+            MD5 md5 = new MD5CryptoServiceProvider();
+            byte[] array = md5.ComputeHash(bytes);
+            return ByteToHex(array);
+        }
+
+        public static string MDFile(string path)
+        {
+            if (!File.Exists(path))
+            {
+                return "";
+            }
+            try
+            {
+                FileStream fs = File.Open(path, FileMode.Open, FileAccess.Read);
+                byte[] bytes = new byte[fs.Length];
+                fs.Read(bytes, 0, (int)fs.Length);
+                //byte[] digest = MD5Array(bytes);
+                fs.Close();
+                fs.Dispose();
+                return ToMD5(bytes);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                return "";
+            }
         }
     }
 }

@@ -39,6 +39,13 @@ namespace ZStart.Core.Common
     {
         public int notify = 0;
         private List<NotifyData<T>> set = null;
+        public int Count
+        {
+            get
+            {
+                return set.Count;
+            }
+        }
 
         public NotifySet()
         {
@@ -61,7 +68,7 @@ namespace ZStart.Core.Common
         {
             for (int i = 0; i < set.Count; i++)
             {
-                if (set[i].target == target && set[i].target.activeSelf)
+                if (set[i].target == target && set[i].target.activeInHierarchy)
                 {
                     set[i].uEvent.Invoke(data);
                     break;
@@ -79,7 +86,7 @@ namespace ZStart.Core.Common
                 }
                 else
                 {
-                    if (set[i].target.activeSelf)
+                    if (set[i].target.activeInHierarchy)
                         set[i].uEvent.Invoke(data);
                 }
             }
@@ -87,7 +94,7 @@ namespace ZStart.Core.Common
 
         public void Clear()
         {
-            notify = 0;
+            notify = -1;
             set.Clear();
         }
 
@@ -102,11 +109,21 @@ namespace ZStart.Core.Common
         private List<NotifyObject<T>> notifyList;
         private List<NotifyObject<T>> cacheNotifys;
         private List<NotifySet<T>> registerSets;
+
+        public int RegistedCount
+        {
+            get
+            {
+                return registerSets.Count;
+            }
+        }
+
         public NotifyProxy()
         {
             notifyList = new List<NotifyObject<T>>();
             cacheNotifys = new List<NotifyObject<T>>();
             registerSets = new List<NotifySet<T>>();
+            ZLog.Log("NotifyProxy...create!!!"+typeof(T).Name);
         }
 
         public void UpdateNotify()
@@ -148,16 +165,19 @@ namespace ZStart.Core.Common
             if (set == null)
             {
                 set = new NotifySet<T>();
+                set.notify = notify;
                 registerSets.Add(set);
             }
             else
             {
                 set.RemoveData(target);
             }
-            NotifyData<T> info = new NotifyData<T>();
-            info.target = target;
-            info.notify = notify;
-            info.uEvent = new NotifyEvent<T>();
+            NotifyData<T> info = new NotifyData<T>
+            {
+                target = target,
+                notify = notify,
+                uEvent = new NotifyEvent<T>()
+            };
             info.uEvent.AddListener(action);
             set.AddData(info);
         }
@@ -208,10 +228,12 @@ namespace ZStart.Core.Common
 
         public void PushNotify(int notify, GameObject target, T data)
         {
-            NotifyObject<T> obj = new NotifyObject<T>();
-            obj.notify = notify;
-            obj.target = target;
-            obj.param = data;
+            NotifyObject<T> obj = new NotifyObject<T>
+            {
+                notify = notify,
+                target = target,
+                param = data
+            };
             cacheNotifys.Add(obj);
         }
 

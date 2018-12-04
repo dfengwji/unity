@@ -11,7 +11,7 @@ namespace ZStart.Core.View
        
         [SerializeField]
         protected UIParamInfo windowInfo;
-        public UIParamInfo info
+        public UIParamInfo Info
         {
             get
             {
