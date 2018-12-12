@@ -1,0 +1,16 @@
+E:\workspace\c#\ZStart\ZStart.Common\ZStart.Common\bin\Debug\netstandard2.0\ZStart.Common.deps.json
+E:\workspace\c#\ZStart\ZStart.Common\ZStart.Common\bin\Debug\netstandard2.0\ZStart.Common.dll
+E:\workspace\c#\ZStart\ZStart.Common\ZStart.Common\bin\Debug\netstandard2.0\ZStart.Common.pdb
+E:\workspace\c#\ZStart\ZStart.Common\ZStart.Common\bin\Debug\netstandard2.0\BouncyCastle.Crypto.dll
+E:\workspace\c#\ZStart\ZStart.Common\ZStart.Common\bin\Debug\netstandard2.0\DOTween.dll
+E:\workspace\c#\ZStart\ZStart.Common\ZStart.Common\bin\Debug\netstandard2.0\ICSharpCode.SharpZipLib.dll
+E:\workspace\c#\ZStart\ZStart.Common\ZStart.Common\bin\Debug\netstandard2.0\UnityEngine.dll
+E:\workspace\c#\ZStart\ZStart.Common\ZStart.Common\bin\Debug\netstandard2.0\UnityEngine.UI.dll
+E:\workspace\c#\ZStart\ZStart.Common\ZStart.Common\bin\Debug\netstandard2.0\ZStart.Core.dll
+E:\workspace\c#\ZStart\ZStart.Common\ZStart.Common\bin\Debug\netstandard2.0\ZStart.Core.pdb
+E:\workspace\c#\ZStart\ZStart.Common\ZStart.Common\obj\Debug\netstandard2.0\ZStart.Common.csproj.CoreCompileInputs.cache
+E:\workspace\c#\ZStart\ZStart.Common\ZStart.Common\obj\Debug\netstandard2.0\ZStart.Common.AssemblyInfoInputs.cache
+E:\workspace\c#\ZStart\ZStart.Common\ZStart.Common\obj\Debug\netstandard2.0\ZStart.Common.AssemblyInfo.cs
+E:\workspace\c#\ZStart\ZStart.Common\ZStart.Common\obj\Debug\netstandard2.0\ZStart.Common.csproj.CopyComplete
+E:\workspace\c#\ZStart\ZStart.Common\ZStart.Common\obj\Debug\netstandard2.0\ZStart.Common.dll
+E:\workspace\c#\ZStart\ZStart.Common\ZStart.Common\obj\Debug\netstandard2.0\ZStart.Common.pdb
