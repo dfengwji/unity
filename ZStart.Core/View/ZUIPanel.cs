@@ -134,5 +134,12 @@ namespace ZStart.Core.View
             yield return null;
             Disappear();
         }
+       
+        public void SetParent(Transform parent)
+        {
+            mTransform.SetParent(parent);
+            mTransform.localPosition = Vector3.zero;
+            mTransform.localRotation = Quaternion.identity;
+        }
     }
 }

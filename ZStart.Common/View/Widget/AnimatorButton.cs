@@ -3,7 +3,6 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using ZStart.Common.Util;
 
 namespace ZStart.Common.View.Widget
 {
@@ -46,8 +45,8 @@ namespace ZStart.Common.View.Widget
             isHover = true;
             if (animat != null)
                 animat.Play("BaseLayer.Highlight");
-            Vector3 direct = AlgorithmUtil.GetDirection(null, mRectTransform);
-            mRectTransform.DOMove(initPos + direct * distance, 0.15f);
+            //Vector3 direct = AppSession.Instance.GetDirection(mRectTransform);
+            //mRectTransform.DOMove(initPos + direct * distance, 0.15f);
         }
 
         public override void OnPointerExit(PointerEventData eventData)

@@ -270,9 +270,14 @@ namespace ZStart.Core.Controller
         public void InitPrefabs()
         {
             List<AssetInfo> assets = ZAssetController.Instance.GetAssets(AssetType.Panel);
+            InitPrefabs(assets);
+        }
+
+        public void InitPrefabs(List<AssetInfo> assets)
+        {
             if (assets == null || assets.Count < 1) return;
             prefabs.Clear();
-            for (int i = 0; i < assets.Count;i++ )
+            for (int i = 0; i < assets.Count; i++)
             {
                 AssetInfo info = assets[i];
                 ZUIPanel prefab = ZAssetController.Instance.GetPrefab<ZUIPanel>(info.asset);
@@ -391,6 +396,7 @@ namespace ZStart.Core.Controller
             if (panel == null)
                 return;
             UpdateHistory();
+            panel.SetParent(panelParent);
             panel.UpdateDepth(PanelDepthType.Top);
             panel.Open(param);
             _currentPanel = panel as ZUIPanel;
@@ -406,6 +412,7 @@ namespace ZStart.Core.Controller
             panel.WakenUp();
             _currentPanel = panel as ZUIPanel;
             current = _currentPanel.name;
+            panel.SetParent(panelParent);
             panel.UpdateDepth(PanelDepthType.Top);
             panel.DelayOpen(param);
            
@@ -504,6 +511,7 @@ namespace ZStart.Core.Controller
             if (panel == null) return;
             //if (_currentPanel == (ZUIPanel)panel)
             //    _currentPanel = null;
+            panel.SetParent(mTransform);
             panel.UpdateDepth(PanelDepthType.Bottom);
             panel.Close();
         }

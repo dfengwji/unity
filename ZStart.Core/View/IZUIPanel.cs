@@ -1,4 +1,5 @@
 ﻿
+using UnityEngine;
 using ZStart.Core.Enum;
 using ZStart.Core.Model;
 namespace ZStart.Core.View
@@ -24,6 +25,8 @@ namespace ZStart.Core.View
             get;
         }
         void WakenUp();
+
+        void SetParent(Transform parent);
 
         void UpdateDepth(int depth);
 

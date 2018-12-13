@@ -172,6 +172,7 @@ namespace ZStart.Common.Controller
             IsLoading = false;
             yield return null;
             ZLog.Log("LevelController... InitInspector.....");
+            NotifyManager.SendNotify(Enum.NotifyType.OnSceneChanged, currentScene);
             SwitchLevel("");
         }
 

@@ -1,17 +1,10 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
-using UnityEngine;
 
 namespace ZStart.Common.Util
 {
     public class AlgorithmUtil
     {
-        public static Vector3 GetDirection(Transform emmit, Transform target)
-        {
-            if (emmit == null || target == null)
-                return Vector3.zero;
-            return (emmit.position - target.position).normalized;
-        }
 
         public static string ByteToHexStr(byte[] bytes)
         {

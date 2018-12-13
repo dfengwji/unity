@@ -78,19 +78,19 @@ namespace ZStart.Common.Manager
             Debug.Log("certificatePath = " + certificatePath);
         }
 
-        public static string LocalDirectory
-        {
-            get
-            {
-                return Instance.localDirectory;
-            }
-        }
-
         public static string ConfigPath
         {
             get
             {
                 return Instance.configFilePath;
+            }
+        }
+
+        public static string LocalDirectory
+        {
+            get
+            {
+                return Instance.localDirectory;
             }
         }
 
