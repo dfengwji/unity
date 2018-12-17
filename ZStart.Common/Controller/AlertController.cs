@@ -326,11 +326,7 @@ namespace ZStart.Common.Controller
             if (string.IsNullOrEmpty(tip))
                 return;
             ZLog.Warning(tip);
-#if UNITY_ANDROID
-            AndroidManager.Instance.Toast(tip);
-#else
             AlertController.Instance.ShowAlert(null, tip, Vector2.zero);
-#endif
         }
 
         public static bool HasWindow
