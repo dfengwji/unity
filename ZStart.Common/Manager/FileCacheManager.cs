@@ -37,44 +37,50 @@ namespace ZStart.Common.Manager
         private readonly string anyImageDirectory;
         private readonly string imageDirectory;
         private readonly string winExeDirectory;
+        private readonly string itvDirectory;
         private FileCacheManager()
         {
             logoDirectory = Path.Combine(Application.persistentDataPath, "Logos");
             screenDirectory = Path.Combine(Application.persistentDataPath, "Screens");
             configFilePath = Path.Combine(Directory.GetParent(Application.dataPath).FullName, "config.ini");
-            
-#if UNITY_ANDROID && !UNITY_EDITOR
-            certificatePath = Path.Combine(Application.persistentDataPath, "certificate.pfx");
-            rootDirectory = "sdcard/ZPS";
-            videoDirectory = "/"+rootDirectory + "/Videos";
-            logoDirectory = "/"+rootDirectory + "/Logos";
-            screenDirectory = "/"+rootDirectory + "/Screens";
-            adDirectory = "/"+rootDirectory + "/ADs";
-            xappDirectory = "/" + rootDirectory + "/xapp/Android";
-            xappWinDirectory = "/" + rootDirectory + "/xapp/Win32";
-            newAppPath = "/" + rootDirectory + "/Version";
-            actionsDirectory = "/"+rootDirectory + "/Actions";
-            localDirectory = "/"+rootDirectory + "/Locals";
-            imageDirectory = "/"+rootDirectory + "/Images/Android";
-            anyImageDirectory = "/"+rootDirectory + "/Images/Any";
-            winImageDirectory = "/"+rootDirectory + "/Images/Win32";
-#else
-            certificatePath = Path.Combine(Directory.GetParent(Application.dataPath).FullName, "certificate.pfx");
-            rootDirectory = Directory.GetParent(Application.dataPath).Parent+"\\ZPS";
-            videoDirectory = Path.Combine(rootDirectory, "Videos");
-            logoDirectory = Path.Combine(rootDirectory, "Logos");
-            screenDirectory = Path.Combine(rootDirectory, "Screens");
-            adDirectory = Path.Combine(rootDirectory, "ADs");
-            xappDirectory = Path.Combine(rootDirectory, "xapp/Android");
-            xappWinDirectory = Path.Combine(rootDirectory, "xapp/Win32");
-            newAppPath = Path.Combine(rootDirectory, "Version");
-            actionsDirectory = Path.Combine(rootDirectory, "Actions");
-            localDirectory = Path.Combine(rootDirectory,"Locals");
-            imageDirectory = Path.Combine(rootDirectory, "Images/Android");
-            winImageDirectory = Path.Combine(rootDirectory, "Images/Win32");
-            anyImageDirectory = Path.Combine(rootDirectory, "Images/Any");
-            winExeDirectory = Path.Combine(rootDirectory, "EXEs");
-#endif
+
+            if (Application.platform == RuntimePlatform.Android)
+            {
+                certificatePath = Path.Combine(Application.persistentDataPath, "certificate.pfx");
+                rootDirectory = "sdcard/ZPS";
+                videoDirectory = "/" + rootDirectory + "/Videos";
+                logoDirectory = "/" + rootDirectory + "/Logos";
+                screenDirectory = "/" + rootDirectory + "/Screens";
+                adDirectory = "/" + rootDirectory + "/ADs";
+                xappDirectory = "/" + rootDirectory + "/xapp/Android";
+                xappWinDirectory = "/" + rootDirectory + "/xapp/Win32";
+                newAppPath = "/" + rootDirectory + "/Version";
+                actionsDirectory = "/" + rootDirectory + "/Actions";
+                localDirectory = "/" + rootDirectory + "/Locals";
+                imageDirectory = "/" + rootDirectory + "/Images/Android";
+                anyImageDirectory = "/" + rootDirectory + "/Images/Any";
+                winImageDirectory = "/" + rootDirectory + "/Images/Win32";
+                itvDirectory = "/" + rootDirectory + "/ITVs";
+            }
+            else
+            {
+                certificatePath = Path.Combine(Directory.GetParent(Application.dataPath).FullName, "certificate.pfx");
+                rootDirectory = Directory.GetParent(Application.dataPath).Parent + "\\ZPS";
+                videoDirectory = Path.Combine(rootDirectory, "Videos");
+                logoDirectory = Path.Combine(rootDirectory, "Logos");
+                screenDirectory = Path.Combine(rootDirectory, "Screens");
+                adDirectory = Path.Combine(rootDirectory, "ADs");
+                xappDirectory = Path.Combine(rootDirectory, "xapp/Android");
+                xappWinDirectory = Path.Combine(rootDirectory, "xapp/Win32");
+                newAppPath = Path.Combine(rootDirectory, "Version");
+                actionsDirectory = Path.Combine(rootDirectory, "Actions");
+                localDirectory = Path.Combine(rootDirectory, "Locals");
+                imageDirectory = Path.Combine(rootDirectory, "Images/Android");
+                winImageDirectory = Path.Combine(rootDirectory, "Images/Win32");
+                anyImageDirectory = Path.Combine(rootDirectory, "Images/Any");
+                winExeDirectory = Path.Combine(rootDirectory, "EXEs");
+                itvDirectory = Path.Combine(rootDirectory, "ITVs");
+            }
             Debug.Log("certificatePath = " + certificatePath);
         }
 
@@ -131,6 +137,14 @@ namespace ZStart.Common.Manager
             get
             {
                 return Instance.winExeDirectory;
+            }
+        }
+
+        public static string ITVDirectory
+        {
+            get
+            {
+                return Instance.itvDirectory;
             }
         }
 
