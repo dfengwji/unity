@@ -17,6 +17,7 @@ namespace ZStart.Common.Controller
             if (a.movementStart > b.movementStart) return 1;
             return 0;
         }
+        public Canvas rootCanvas;
         public AlertParts iconLabelPrefab;
         public AlertParts labelPrefab;
         public Font defFont;
@@ -44,12 +45,12 @@ namespace ZStart.Common.Controller
         int counter = 0;
 
         public bool isTween = false;
-        public Transform effectBox;
-        public RectTransform overlayParent;
+        public Transform effectBox = null;
+        public RectTransform windowBox = null;
         public string openedWindow = "";
         private AppWindow _alertWindow;
-        public BaseEffect mShowVfx;
-        public BaseEffect mCloseVfx;
+        public BaseEffect mShowVfx = null;
+        public BaseEffect mCloseVfx = null;
         public Dictionary<string,UIParamInfo> historyWindows;
         public float openDelay = 1.5f;
         public float hideDelay = 1.5f;
@@ -90,7 +91,7 @@ namespace ZStart.Common.Controller
         public T ShowWindow<T>(UIParamInfo info, bool effect, bool mask) where T : AppWindow
         {
             overlayMask.SetActive(mask);
-            T clone = ZAssetController.Instance.ActivateAsset<T>(overlayParent);
+            T clone = ZAssetController.Instance.ActivateAsset<T>(windowBox);
             _alertWindow = clone;
             openedWindow = typeof(T).Name;
             clone.effectPoint = effectBox;
@@ -113,7 +114,7 @@ namespace ZStart.Common.Controller
             if (_alertWindow != null && typeof(T) == _alertWindow.GetType())
                 return _alertWindow as T;
 
-            T clone = ZAssetController.Instance.ActivateAsset<T>(overlayParent);
+            T clone = ZAssetController.Instance.ActivateAsset<T>(windowBox);
             _alertWindow = clone;
             openedWindow = typeof(T).Name;
             clone.effectPoint = effectBox;
@@ -279,7 +280,7 @@ namespace ZStart.Common.Controller
             else
                 item = Instantiate(labelPrefab);
             item.gameObject.SetActive(true);
-            item.mTransform.SetParent(overlayParent);
+            item.mTransform.SetParent(windowBox);
             item.mTransform.localPosition = Vector3.zero;
             item.time = Time.realtimeSinceStartup;
             item.sign = 0;
@@ -319,6 +320,19 @@ namespace ZStart.Common.Controller
     {
         private Alert()
         {
+        }
+
+        public static void SetWindowBox(RectTransform box)
+        {
+            AlertController.Instance.windowBox = box;
+        }
+
+        public static Canvas RootCanvas
+        {
+            get
+            {
+                return AlertController.Instance.rootCanvas;
+            }
         }
 
         public static void ShowTip(string tip)

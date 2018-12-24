@@ -8,7 +8,7 @@ namespace ZStart.Common.Level
         public Camera sceneCamera;
         public void ShowSky()
         {
-            //RenderSettings.skybox = skybox;
+            RenderSettings.skybox = skybox;
         }
 
         public virtual void Show()

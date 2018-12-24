@@ -36,8 +36,6 @@ namespace ZStart.Common.Controller
             }
         }
 
-        private bool isInit = false;
-
         protected override void Awake()
         {
             base.Awake();
@@ -205,7 +203,6 @@ namespace ZStart.Common.Controller
 
         public void InitScene()
         {
-            isInit = true;
             StartCoroutine(InitInspector());
         }
 

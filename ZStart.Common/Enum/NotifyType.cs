@@ -50,6 +50,8 @@
         /// </summary>
         OnAppBehaviour,
 
+        OnAppIconLoad,
+
         /// <summary>
         /// param:AppImageInfo info
         /// </summary>

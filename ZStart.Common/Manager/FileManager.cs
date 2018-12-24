@@ -7,15 +7,15 @@ using ZStart.Core;
 
 namespace ZStart.Common.Manager
 {
-    public class FileCacheManager
+    public class FileManager
     {
-        private static FileCacheManager mInstance = null;
-        public static FileCacheManager Instance
+        private static FileManager mInstance = null;
+        public static FileManager Instance
         {
             get
             {
                 if (mInstance == null)
-                    mInstance = new FileCacheManager();
+                    mInstance = new FileManager();
                 return mInstance;
             }
         }
@@ -38,7 +38,7 @@ namespace ZStart.Common.Manager
         private readonly string imageDirectory;
         private readonly string winExeDirectory;
         private readonly string itvDirectory;
-        private FileCacheManager()
+        private FileManager()
         {
             logoDirectory = Path.Combine(Application.persistentDataPath, "Logos");
             screenDirectory = Path.Combine(Application.persistentDataPath, "Screens");
@@ -246,6 +246,22 @@ namespace ZStart.Common.Manager
                 File.Delete(path);
             }catch(Exception e){
                 ZLog.Error("delete flie Error : " + e.Message);
+            }
+        }
+
+        public long GetFileSize(string path)
+        {
+            try
+            {
+                if (!File.Exists(path))
+                    return 0;
+                FileInfo info = new FileInfo(path);
+                return info.Length;
+            }
+            catch (Exception e)
+            {
+                ZLog.Error("get file size Error : " + e.Message);
+                return 0;
             }
         }
 
