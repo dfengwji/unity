@@ -140,6 +140,7 @@ namespace ZStart.Core.View
             mTransform.SetParent(parent);
             mTransform.localPosition = Vector3.zero;
             mTransform.localRotation = Quaternion.identity;
+            mTransform.localScale = Vector3.one;
         }
     }
 }
