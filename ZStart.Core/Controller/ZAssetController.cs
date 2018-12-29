@@ -13,7 +13,7 @@ namespace ZStart.Core.Controller
     public struct PoolObjectInfo
     {
         public string name;
-        public string asset;
+        public string path;
         public int bundle;
         public GameObject gameObject;
         public Transform transform;
@@ -21,7 +21,7 @@ namespace ZStart.Core.Controller
         public void Clear()
         {
             name = "";
-            asset = "";
+            path = "";
             bundle = 0;
             gameObject = null;
             component = null;
@@ -610,7 +610,7 @@ namespace ZStart.Core.Controller
                 PoolObjectInfo info = assetList[i];
                 GameObject go = info.gameObject;
 
-                if (info.component != null && !go.activeSelf && path == info.asset && info.transform.parent == mTransform)
+                if (info.component != null && !go.activeSelf && path == info.path && info.transform.parent == mTransform)
                 {
                     if (typeof(T) == info.component.GetType() || info.component.GetType().IsSubclassOf(typeof(T)))
                     {
@@ -770,6 +770,22 @@ namespace ZStart.Core.Controller
             return prop;
         }
 
+        public T ActivateAsset<T>(string path,string assetName, Transform parent) where T : MonoBehaviour
+        {
+            T prop = GetSleepAsset<T>(path);
+            if (prop == null)
+            {
+                prop = CreateAsset<T>(path, assetName);
+                if (prop == null)
+                {
+                    ZLog.Warning("can not create asset that name = " + typeof(T) + "!!!");
+                    return null;
+                }
+            }
+            ResetAsset(prop.transform, parent);
+            return prop;
+        }
+
         private void ResetAsset(Transform trans,Transform parent)
         {
             trans.SetParent(parent, false);
@@ -813,7 +829,7 @@ namespace ZStart.Core.Controller
             Transform target = Instantiate(prefab);
             PoolObjectInfo info = new PoolObjectInfo
             {
-                asset = path,
+                path = path,
                 name = uname,
                 gameObject = target.gameObject,
                 transform = target,
@@ -825,6 +841,23 @@ namespace ZStart.Core.Controller
             assetList.Add(info);
             target.SetParent(parent, false);
             target.gameObject.SetActive(false);
+        }
+
+        private T CreateAsset<T>(string path, string assetName) where T : MonoBehaviour
+        {
+            GameObject obj = ZBundleManager.Instance.GetAsset<GameObject>(path, assetName);
+            if (obj == null)
+            {
+                ZLog.Warning("can not get gameobject that path = " + path + "; asset name = "+assetName);
+                return null;
+            }
+            T prefab = obj.GetComponent<T>();
+            if (prefab == null)
+            {
+                ZLog.Warning("miss script that path = " + path + "; asset name = " + assetName);
+                return null;
+            }
+            return CreateAsset(prefab, assetName, path);
         }
 
         private T CreateAsset<T>(T prefab, string path) where T : MonoBehaviour
@@ -847,7 +880,7 @@ namespace ZStart.Core.Controller
             T clone = Instantiate<T>(prefab);
             PoolObjectInfo info = new PoolObjectInfo
             {
-                asset = path,
+                path = path,
                 name = uname,
                 gameObject = clone.gameObject,
                 transform = clone.transform,

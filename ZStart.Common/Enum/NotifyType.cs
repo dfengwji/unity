@@ -84,7 +84,7 @@
         OnNoticeUpdate,
         OnResourceCheck,
 
-
+        OnBrowerInit,
         OnBrowerFlyIn,
         OnBrowerFlyOut,
     }

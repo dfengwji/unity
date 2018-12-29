@@ -19,13 +19,13 @@ namespace ZStart.Core.Controller
     public class BundleLoadInfo
     {
         public int id;
-        public string address = "";
+        public string path = "";
         public BundleType type = BundleType.Unknow;
         public bool isWeb = false;
         public UnityAction<string, bool> completeFun;
         public BundleLoadInfo(string path, BundleType kind)
         {
-            address = path;
+            this.path = path;
             type = kind;
         }
     }
@@ -172,11 +172,11 @@ namespace ZStart.Core.Controller
             BundleLoadInfo info = loadInfoList[0];
             loadIndex++;
             state = BundleLoadState.InProgress;
-            if (ZBundleManager.Instance.HasBundle(info.address))
+            if (ZBundleManager.Instance.HasBundle(info.path))
             {
                 if (info.completeFun != null)
-                    info.completeFun.Invoke(info.address,true);
-                RemoveLoadInfo(info.address);
+                    info.completeFun.Invoke(info.path,true);
+                RemoveLoadInfo(info.path);
                 LoadNext();
             }
             else
@@ -191,18 +191,18 @@ namespace ZStart.Core.Controller
 
         IEnumerator LoadFileInspector(BundleLoadInfo info)
         {
-            AssetBundleCreateRequest request = AssetBundle.LoadFromFileAsync(info.address);
+            AssetBundleCreateRequest request = AssetBundle.LoadFromFileAsync(info.path);
             yield return request;
            
             if (request.isDone)
             {
                 AssetBundle bundle = request.assetBundle;
                 if (bundle != null)
-                    ZBundleManager.Instance.AddBundle(info.address, info.type, bundle);
+                    ZBundleManager.Instance.AddBundle(info.path, info.type, bundle);
                 if (info.completeFun != null)
-                    info.completeFun.Invoke(info.address, true);
+                    info.completeFun.Invoke(info.path, true);
             }
-            RemoveLoadInfo(info.address);
+            RemoveLoadInfo(info.path);
             yield return null;
             LoadNext();
         }
@@ -211,26 +211,26 @@ namespace ZStart.Core.Controller
         {
             while (!Caching.ready)
                 yield return null;
-            using (WWW www = WWW.LoadFromCacheOrDownload(info.address, 1))
+            using (WWW www = WWW.LoadFromCacheOrDownload(info.path, 1))
             {
                 yield return www;
                 if (www.isDone)
                 {
                     if (!string.IsNullOrEmpty(www.error))
                     {
-                        Debug.LogError("WWW download:" + www.error + " that url = " + info.address);
+                        Debug.LogError("WWW download:" + www.error + " that url = " + info.path);
                         state = BundleLoadState.Failure;
                         if (info.completeFun != null)
-                            info.completeFun.Invoke(info.address, false);
+                            info.completeFun.Invoke(info.path, false);
                         yield break;
                     }
                     else
                     {
-                        ZBundleManager.Instance.AddBundle(info.id, info.address, 1, info.type, www.assetBundle);
+                        ZBundleManager.Instance.AddBundle(info.id, info.path, 1, info.type, www.assetBundle);
                         if (info.completeFun != null)
-                            info.completeFun.Invoke(info.address, true);
+                            info.completeFun.Invoke(info.path, true);
                     }
-                    RemoveLoadInfo(info.address);
+                    RemoveLoadInfo(info.path);
                     www.Dispose();
                     LoadNext();
                 }
@@ -242,7 +242,7 @@ namespace ZStart.Core.Controller
             for (int i = 0; i < loadInfoList.Count; i++)
             {
                 BundleLoadInfo mode = loadInfoList[i];
-                if (mode.address.Equals(address))
+                if (mode.path.Equals(address))
                 {
                     loadInfoList.RemoveAt(i);
                     break;
@@ -254,7 +254,7 @@ namespace ZStart.Core.Controller
         {
             foreach (BundleLoadInfo mode in loadInfoList)
             {
-                if (mode.address.Equals(address))
+                if (mode.path.Equals(address))
                     return mode;
             }
             return null;
@@ -267,7 +267,7 @@ namespace ZStart.Core.Controller
             for (int i = 0; i < loadInfoList.Count; i++)
             {
                 BundleLoadInfo mode = loadInfoList[i];
-                if (mode.address.Equals(address))
+                if (mode.path.Equals(address))
                     return true;
             }
             return false;

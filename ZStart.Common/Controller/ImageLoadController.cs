@@ -183,17 +183,14 @@ namespace ZStart.Common.Controller
                 string path = Path.Combine(FileManager.LogoDirectory, info.identify + ".jpg");
                 if (File.Exists(path))
                 {
-                    Debug.LogWarning("load from local!!!!!" + path);
-                    if (File.Exists(path))
-                    {
-                        byte[] bytes = File.ReadAllBytes(path);
-                        AddImage(bytes, info, "", new Vector2(defaultSize.x, defaultSize.y));
-                    }
+                    byte[] bytes = File.ReadAllBytes(path);
+                    AddImage(bytes, info, "", new Vector2(defaultSize.x, defaultSize.y));
                     RemoveRequest(info.uid);
                     LoadNext();
                 }
                 else
                 {
+                    //Debug.LogWarning("local image is not exist!!!!!" + path);
                     StartCoroutine(DownloadInspector(info, path));
                 }
             }
