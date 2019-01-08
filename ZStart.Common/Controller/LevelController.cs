@@ -20,8 +20,7 @@ namespace ZStart.Common.Controller
 
         public BaseLevel loadedLevel;
         public bool showGuide = false;
-        public bool IsLoading { get; private set; } = false;
-
+        public float roateSpeed = 300f;
         private bool showLoad = false;
         public bool showLoading{
             set{
@@ -46,7 +45,6 @@ namespace ZStart.Common.Controller
         void Start()
         {
             showLoading = true;
-            CallbackController.Instance.RegisterUpdateEvent("LevelController-"+GetInstanceID(),UpdateAction);
         }
 
         private void ShowScene(bool show)
@@ -68,19 +66,8 @@ namespace ZStart.Common.Controller
             }
         }
 
-        //void OnApplicationPause(bool isPause)
-        //{
-        //    if (isPause == false && isInit)
-        //    {
-        //        string path = AppIOManager.Instance.GetTheme();
-        //        SwitchLevel(path);
-        //    }
-        //}
-
         void UpdateAction()
         {
-            if (showLoad && loadingObj != null)
-                loadingObj.Rotate(Vector3.back, Time.deltaTime * 300);
 #if UNITY_EDITOR
             if(Input.GetKeyDown(KeyCode.Alpha0)){
                 SwitchLevel("");
@@ -137,14 +124,18 @@ namespace ZStart.Common.Controller
         IEnumerator InitInspector()
         {
             showLoading = true;
-            IsLoading = true;
-
             AsyncOperation async = SceneManager.LoadSceneAsync(launcherScene);
+            async.allowSceneActivation = false;
             while (!async.isDone)
             {
+                if (async.progress > 0.8999f)
+                {
+                    async.allowSceneActivation = true;
+                }
+                if (loadingObj != null)
+                    loadingObj.Rotate(Vector3.back, Time.deltaTime * roateSpeed);
                 yield return null;
             }
-            async.allowSceneActivation = true;
             yield return null;
             loadedLevel = FindObjectOfType<BaseLevel>();
             yield return new WaitForSeconds(0.2f);
@@ -167,7 +158,7 @@ namespace ZStart.Common.Controller
                     guideModule.SetActive(false);
                 NotifyManager.SendNotify(Enum.NotifyType.OnGuideComplete, null);
             }
-            IsLoading = false;
+           
             yield return null;
             ZLog.Log("LevelController... InitInspector.....");
             NotifyManager.SendNotify(Enum.NotifyType.OnSceneChanged, currentScene);
@@ -179,18 +170,25 @@ namespace ZStart.Common.Controller
             ZLog.Log("switch scene!!!!from = " + currentScene + " to " + scene + " and flag = " + flag);
             if (currentScene == scene)
                 yield break;
-            IsLoading = true;
+           
             yield return new WaitForSeconds(0.5f);
             RenderSettings.skybox = null;
             showLoading = true;
             yield return new WaitForSeconds(0.1f);
            
             AsyncOperation async = SceneManager.LoadSceneAsync(scene,LoadSceneMode.Single);
+            async.allowSceneActivation = false;
             while (!async.isDone)
             {
+                if (async.progress > 0.8999f)
+                {
+                    async.allowSceneActivation = true;
+                }
+                if (loadingObj != null)
+                    loadingObj.Rotate(Vector3.back, Time.deltaTime * roateSpeed);
                 yield return null;
             }
-            async.allowSceneActivation = true;
+          
             yield return null;
             showLoading = false;
             loadedLevel = GameObject.FindObjectOfType<BaseLevel>();
@@ -198,7 +196,6 @@ namespace ZStart.Common.Controller
             yield return new WaitForSeconds(0.2f);
             loadedLevel.ShowSky();
             yield return null;
-            IsLoading = false;
         }
 
         public void InitScene()
@@ -208,9 +205,8 @@ namespace ZStart.Common.Controller
 
         public void SwitchLevel(string path)
         {
-            ZLog.Log("LevelController switch level = " + path+";loading = "+IsLoading);
-            if (IsLoading)
-                return;
+            ZLog.Log("LevelController switch level = " + path);
+           
             if (string.IsNullOrEmpty(path))
             {
                 StartCoroutine(LoadInspector(launcherScene,""));
@@ -229,9 +225,8 @@ namespace ZStart.Common.Controller
 
         public void LoadLevel(string stage)
         {
-            ZLog.Log("LevelController switch level = " + stage + ";loading = " + IsLoading);
-            if (IsLoading)
-                return;
+            ZLog.Log("LevelController switch level = " + stage);
+           
             if (string.IsNullOrEmpty(stage))
             {
                 StartCoroutine(LoadInspector(launcherScene, ""));
