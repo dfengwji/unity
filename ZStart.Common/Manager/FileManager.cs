@@ -282,7 +282,7 @@ namespace ZStart.Common.Manager
                 using (FileStream stream = new FileStream(path, FileMode.Create))
                 {
                     stream.Write(bytes, 0, bytes.Length);
-                    stream.Flush(true);
+                    stream.Flush();
                     stream.Close();
                     stream.Dispose();
                 }

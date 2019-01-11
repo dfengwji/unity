@@ -274,7 +274,7 @@ namespace ZStart.Core.Controller
                         {
                             json = info.data;
                         }
-                        ZLog.Log("Request Server...uid = " + info.uid + " ;url = " + info.url + " ; data = " + info.data);
+                        //ZLog.Log("Request Server...uid = " + info.uid + " ;url = " + info.url + " ; data = " + info.data);
                         www = UnityWebRequest.Put(info.url, json);
                         www.method = UnityWebRequest.kHttpVerbPOST;
                         if (!string.IsNullOrEmpty(Token))
