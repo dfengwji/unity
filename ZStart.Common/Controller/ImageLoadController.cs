@@ -187,10 +187,15 @@ namespace ZStart.Common.Controller
                     AddImage(bytes, info, "", new Vector2(defaultSize.x, defaultSize.y));
                     RemoveRequest(info.uid);
                     LoadNext();
+                }else if (File.Exists(info.url))
+                {
+                    byte[] bytes = File.ReadAllBytes(info.url);
+                    AddImage(bytes, info, "", new Vector2(defaultSize.x, defaultSize.y));
+                    RemoveRequest(info.uid);
+                    LoadNext();
                 }
                 else
                 {
-                    //Debug.LogWarning("local image is not exist!!!!!" + path);
                     StartCoroutine(DownloadInspector(info, path));
                 }
             }
