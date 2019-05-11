@@ -2,7 +2,6 @@
 using UnityEngine;
 using ZStart.Core.Enum;
 using ZStart.Core.Model;
-using ZStart.Core.Util;
 namespace ZStart.Core.View
 {
     public abstract class ZUIPanel:ZUIBehaviour, IZUIPanel
@@ -19,7 +18,7 @@ namespace ZStart.Core.View
             }
         }
 
-        protected bool _isOpen = false;
+        private bool _isOpen = false;
         public bool isOpen
         {
             get { return _isOpen; }
@@ -57,8 +56,7 @@ namespace ZStart.Core.View
 
         public void WakenUp()
         {
-            if(gameObject.activeInHierarchy == false)
-                GameObjectUtil.ActiveChildren(gameObject, true);
+            gameObject.SetActive(true);
             mTransform.localScale = Vector3.one;
             mTransform.localPosition = Vector3.zero;
             mTransform.localRotation = Quaternion.identity;
@@ -80,13 +78,6 @@ namespace ZStart.Core.View
 
         }
 
-        public void DelayOpen(UIParamInfo info)
-        {
-            StopAllCoroutines();
-            if (gameObject.activeInHierarchy)
-                StartCoroutine(OpenInspector(info));
-        }
-
         public void UpdateDepth(int depth)
         {
             
@@ -104,15 +95,6 @@ namespace ZStart.Core.View
             }
         }
 
-        IEnumerator OpenInspector(UIParamInfo info)
-        {
-            while (isStartEnd == false)
-            {
-                yield return null;
-            }
-            Open(info);
-        }
-
         public void Open(UIParamInfo info)
         {
             windowInfo = info;
@@ -126,12 +108,6 @@ namespace ZStart.Core.View
             RemoveListeners();
             Clear();
             _isOpen = false;
-            StartCoroutine(CloseInspector());
-        }
-
-        IEnumerator CloseInspector()
-        {
-            yield return null;
             Disappear();
         }
        

@@ -8,5 +8,6 @@
         public string path = "";
         public string name = "";
         public long size = 0;
+        public bool avatar = false;
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using ZStart.Core.Enum;
 using ZStart.Core.Model;
@@ -144,7 +145,6 @@ namespace ZStart.Core.Controller
 
         public RectTransform panelParent;
        
-        public Camera sceneCamera;
         public Camera uiCamera;
         public RectTransform effectPoint;
         public Vector3 canvasScale = Vector3.one;
@@ -201,20 +201,6 @@ namespace ZStart.Core.Controller
                 panelParent = this.GetComponent<RectTransform>();
 
             canvasScale = mTransform.localScale;
-            //if (GameSession.Instance && GameSession.Instance.currentLobby)
-            //{
-            //    //defaultPanel = UIPanelType.RoomInfomation;
-            //}
-            //else
-            //{
-            //    defaultPanel = UIPanelType.Main;
-            //}
-            //if (ZAppContext.backPanel != UIPanelType.None)
-            //    defaultPanel = ZAppContext.backPanel;
-            //ShowPanel(defaultPanel);
-            //Debug.Log(defaultPanel);
-            //AppContext.backPanel = UIPanelType.None;
-            //uiCamera = NGUITools.FindCameraForLayer((int)LayerMaskType.ItemUI)
         }
 
         void OnDestroy()
@@ -348,10 +334,10 @@ namespace ZStart.Core.Controller
                 else
                 {
                     panel.WakenUp();
-                    panel.DelayOpen(tmp.Info);
+                    StartCoroutine(OpenInspector(tmp, tmp.Info));
                 }
                 panel.UpdateDepth(PanelDepthType.Top);
-                _currentPanel = panel as ZUIPanel;
+                _currentPanel = tmp;
                 current = _currentPanel.name;
                 ZLog.Warning("ShowBackPanel....."+current);
             }
@@ -414,8 +400,17 @@ namespace ZStart.Core.Controller
             current = _currentPanel.name;
             panel.SetParent(panelParent);
             panel.UpdateDepth(PanelDepthType.Top);
-            panel.DelayOpen(param);
+            StartCoroutine(OpenInspector(_currentPanel, param));
            
+        }
+
+        IEnumerator OpenInspector(ZUIPanel panel, UIParamInfo info)
+        {
+            while (panel.isStartEnd == false)
+            {
+                yield return null;
+            }
+            panel.Open(info);
         }
 
         public bool IsWaken<T>() where T : ZUIPanel
@@ -542,7 +537,11 @@ namespace ZStart.Core.Controller
         private void CloseWakenPanel<T>()where T:ZUIPanel
         {
             T panel = GetWakenPanel<T>();
-            if (panel == null) return;
+            if (panel == null)
+            {
+                ZLog.Warning("can not find the wakend panel that name = " + typeof(T).Name);
+                return;
+            }
             int len = history.Count;
             
             if(len > 0 && history[len - 1] == panel.name)

@@ -70,9 +70,11 @@ namespace ZStart.Core.Controller
         {
             if (!HasLoadInfo(url))
             {
-                BundleLoadInfo info = new BundleLoadInfo(url, type);
-                info.isWeb = true;
-                info.completeFun = complete;
+                BundleLoadInfo info = new BundleLoadInfo(url, type)
+                {
+                    isWeb = true,
+                    completeFun = complete
+                };
                 loadInfoList.Add(info);
             }
             totalLength = loadInfoList.Count;
@@ -84,9 +86,11 @@ namespace ZStart.Core.Controller
         {
             if (!HasLoadInfo(path))
             {
-                BundleLoadInfo info = new BundleLoadInfo(path, type);
-                info.isWeb = false;
-                info.completeFun = complete;
+                BundleLoadInfo info = new BundleLoadInfo(path, type)
+                {
+                    isWeb = false,
+                    completeFun = complete
+                };
                 loadInfoList.Add(info);
             }
             totalLength = loadInfoList.Count;

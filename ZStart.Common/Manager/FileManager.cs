@@ -523,6 +523,29 @@ namespace ZStart.Common.Manager
             }
         }
 
+        public void WriteTags(string json)
+        {
+            string path = Path.Combine(rootDirectory, "tags.json");
+            ZLog.Log("WriteTags..." + path);
+            WriteText(path, json);
+        }
+
+        public string ReadTags()
+        {
+            try
+            {
+                string path = Path.Combine(rootDirectory, "tags.json");
+                if (File.Exists(path) == false)
+                    return "";
+                return File.ReadAllText(path);
+            }
+            catch (Exception e)
+            {
+                ZLog.Error("read flie error : " + e.Message);
+                return "";
+            }
+        }
+
         public string ReadTerminals()
         {
             try

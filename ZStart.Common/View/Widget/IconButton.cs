@@ -7,7 +7,7 @@ namespace ZStart.Common.View.Widget
     public class IconButton:GazeButton
     {
         public Image icon;
-
+        public RawImage rawIcon;
         private UnityAction<IconButton> clickFun;
         private UnityAction<IconButton, bool> callFun;
         private UnityAction<IconButton, bool> hoverCallFun;
@@ -41,6 +41,8 @@ namespace ZStart.Common.View.Widget
             base.Start();
             if (icon == null)
                 icon = GetComponentInChildren<Image>();
+            if (rawIcon == null)
+                rawIcon = GetComponentInChildren<RawImage>();
         }
 
         public void AddClickListener(UnityAction<IconButton> callback)
@@ -125,11 +127,40 @@ namespace ZStart.Common.View.Widget
                 icon.enabled = show;
         }
 
+        public void ShowTexture(bool show)
+        {
+            if (rawIcon != null)
+                rawIcon.enabled = show;
+        }
+
+        public void SwitchImage(bool raw)
+        {
+            if (rawIcon != null)
+                rawIcon.enabled = raw;
+            if (icon != null)
+                icon.enabled = !raw;
+        }
+
         public void UpdateSprite(Sprite sp)
         {
             if (sp != null)
                 icon.sprite = sp;
             icon.enabled = sp == null ? false : true;
+        }
+
+        public void UpdateTexture(Texture2D tex)
+        {
+            if (tex != null)
+                rawIcon.texture = tex;
+            rawIcon.enabled = tex == null ? false : true;
+        }
+
+        public void UpdateAdaptTexture(Texture2D tex)
+        {
+            rawIcon.texture = tex;
+            rawIcon.enabled = tex == null ? false : true;
+            if (tex != null)
+                rawIcon.SetNativeSize();
         }
 
         public void UpdateAdaptSprite(Sprite sp)

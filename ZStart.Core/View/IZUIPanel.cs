@@ -31,7 +31,6 @@ namespace ZStart.Core.View
         void UpdateDepth(int depth);
 
         void UpdateDepth(PanelDepthType depth);
-        void DelayOpen(UIParamInfo info);
         void Open(UIParamInfo info);
         void Close();
     }
