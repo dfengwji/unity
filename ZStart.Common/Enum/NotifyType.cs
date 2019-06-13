@@ -78,7 +78,7 @@
 
         OnLaguageUpdate,
 
-        OnTaskComplete,
+        OnTaskUpdate,
 
         OnTaskReady,
         OnNoticeUpdate,
@@ -87,5 +87,7 @@
         OnBrowerInit,
         OnBrowerFlyIn,
         OnBrowerFlyOut,
+        
+        OnPlayerUpdate,
     }
 }

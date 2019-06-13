@@ -13,8 +13,10 @@ namespace ZStart.Common.View.Parts
             Play,
             Detail,
             Delete,
+            Stop,
+            Capture,
         }
-
+        public Image iconMask;
         public RawImage iconImage;
         public Image defaultImage;
         public Text tipLabel;
@@ -66,6 +68,11 @@ namespace ZStart.Common.View.Parts
         }
 
         public virtual void AddListener(UnityAction<AppItemParts, OptionType> clickFun)
+        {
+
+        }
+
+        public virtual void UpdateOption(OptionType type, bool enable)
         {
 
         }
@@ -122,6 +129,8 @@ namespace ZStart.Common.View.Parts
                 bool show = tex == null ? false : true;
                 defaultImage.enabled = !show;
                 iconImage.enabled = show;
+                if (iconMask != null)
+                    iconMask.enabled = show;
                 if (show)
                 {
                     //canvasRender.cull = false;
@@ -131,6 +140,8 @@ namespace ZStart.Common.View.Parts
             else
             {
                 iconImage.enabled = false;
+                if (iconMask != null)
+                    iconMask.enabled = false;
                 defaultImage.enabled = true;
             }
         }
@@ -143,6 +154,8 @@ namespace ZStart.Common.View.Parts
                 bool show = tex == null ? false : true;
                 defaultImage.enabled = !show;
                 iconImage.enabled = show;
+                if (iconMask != null)
+                    iconMask.enabled = show;
                 if (show)
                 {
                     //canvasRender.cull = false;
@@ -152,6 +165,8 @@ namespace ZStart.Common.View.Parts
             else
             {
                 iconImage.enabled = false;
+                if (iconMask != null)
+                    iconMask.enabled = false;
                 defaultImage.enabled = true;
             }
         }

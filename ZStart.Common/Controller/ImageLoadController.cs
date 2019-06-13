@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -10,10 +9,9 @@ using ZStart.Core;
 
 namespace ZStart.Common.Controller
 {
-    [Serializable]
     public class ImageInfo
     {
-        public string uid = "";
+        private string uid = "";
         public string identify = "";
         public Texture2D texture = null;
         public string url = "";
@@ -21,6 +19,7 @@ namespace ZStart.Common.Controller
         public Vector2 size = Vector2.zero;
         public byte[] buffer;
         public bool local = false;
+
         public ImageInfo() { }
 
         public ImageInfo(string uuid, string app, Texture2D icon, string url, int screenIdx)
@@ -30,6 +29,11 @@ namespace ZStart.Common.Controller
             this.texture = icon;
             this.url = url;
             this.screenIdx = screenIdx;
+        }
+
+        public string GetUID()
+        {
+            return uid;
         }
 
         public void Clear()
@@ -66,7 +70,7 @@ namespace ZStart.Common.Controller
             base.Awake();
             isLoading = false;
             requestList = new List<RequestInfo>();
-            //loadedList = new List<ImageInfo>();
+            loadedList = new List<ImageInfo>();
         }
 
         private string GetUID(string identify, int index)
@@ -81,7 +85,7 @@ namespace ZStart.Common.Controller
         /// <param name="package"></param>
         /// <param name="url"></param>
         /// <param name="screen">logo == -1</param>
-        private void Load(string identify, string url, int screen)
+        private void LoadRemote(string identify, string url, int screen)
         {
             //ZLog.Log("ImageLoadController.....uid = " + appid + "; package = " + package + "; url = " + url + "; index = " + screen + ";path = " + path);
             if (string.IsNullOrEmpty(url) && screen == 0)
@@ -105,51 +109,89 @@ namespace ZStart.Common.Controller
             LoadNext();
         }
 
-        public Texture2D GetTexture(string path, Vector2 size)
+        private ImageInfo ReadLocal(string identify, string path, Vector2 size)
         {
-            string uid = GetUID(path, -1);
+            if (string.IsNullOrEmpty(path) || !File.Exists(path))
+                return null;
+            byte[] bytes = File.ReadAllBytes(path);
+            RequestInfo info = new RequestInfo()
+            {
+                uid = GetUID(identify, -1),
+                identify = identify,
+                screenIdx = -1,
+                package = "",
+                url = path,
+            };
+            ImageInfo tmp = AddImage(bytes, info, "", new Vector2(size.x, size.y));
+            if (tmp != null)
+            {
+                return tmp;
+            }
+            return null;
+        }
+
+        private bool IsWebPath(string url)
+        {
+            if (string.IsNullOrEmpty(url))
+                return false;
+            int len = 6;
+            if (url.Length < len)
+                len = url.Length;
+            string sub = url.Substring(0, len);
+            if (sub.Contains("http") || sub.Contains("https") || sub.Contains("ftp"))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public Texture2D GetTexture(string identify, string url, Vector2 size, int screen = 0)
+        {
+            string uid = GetUID(identify, screen);
+            bool isWeb = IsWebPath(url);
+            if(!isWeb)
+                uid = GetUID(identify, -1);
             ImageInfo info = GetImageInfo(uid);
             if (info != null)
                 return info.texture;
-            if (File.Exists(path) == false)
-                return null;
-            byte[] bytes = File.ReadAllBytes(path);
-            ImageInfo tmp = AddImage(bytes, new RequestInfo()
+            if (isWeb)
             {
-                uid = uid,
-                identify = path,
-                screenIdx = -1,
-                package = "",
-                url = path
-            }, "", new Vector2(size.x, size.y));
-            if (tmp != null)
-                return tmp.texture;
+                LoadRemote(identify, url, screen);
+            }
+            else
+            {
+                ImageInfo tmp = ReadLocal(identify, url, size);
+                if (tmp != null)
+                    return tmp.texture;
+            }
             return null;
         }
 
         public Texture2D GetTexture(string identify, string url, int screen = 0)
         {
-            string uid = GetUID(identify, screen);
-            ImageInfo info = GetImageInfo(uid);
-            if (info != null)
-                return info.texture;
-            if (string.IsNullOrEmpty(url))
-                LoadFromApk(identify);
-            else
-                Load(identify, url, screen);
-            return null;
+            return GetTexture(identify, url, defaultSize, screen);
         }
 
         public ImageInfo GetImageInfo(string identify, string url, int screen = 0)
         {
             string uid = GetUID(identify, screen);
+            bool isWeb = IsWebPath(url);
+            if (!isWeb)
+                uid = GetUID(identify, -1);
             ImageInfo info = GetImageInfo(uid);
             if (info != null && info.url == url)
                 return info;
-            if (string.IsNullOrEmpty(url))
-                LoadFromApk(identify);
+            if (IsWebPath(url))
+            {
+                LoadRemote(identify, url, screen);
+            }
             else
-                Load(identify, url, screen);
+            {
+                return ReadLocal(identify, url, defaultSize);
+            }
             return null;
         }
 
@@ -157,7 +199,7 @@ namespace ZStart.Common.Controller
         {
             for (int i = 0; i < loadedList.Count; i++)
             {
-                if (loadedList[i].uid == uid)
+                if (loadedList[i].GetUID() == uid)
                     return loadedList[i];
             }
             return null;
@@ -299,15 +341,9 @@ namespace ZStart.Common.Controller
                 {
                     FileManager.Instance.WriteFile(path, buffer);
                 }
-                ImageInfo detail = new ImageInfo
+                Texture2D texture = CreateTexture(buffer, new Vector2(size.x, size.y));
+                ImageInfo detail = new ImageInfo(info.uid, info.identify, texture, info.url, info.screenIdx)
                 {
-                    uid = info.uid,
-                    identify = info.identify,
-                    url = info.url,
-                    screenIdx = info.screenIdx,
-                    //detail.texture = tex;
-                    texture = CreateTexture(buffer, new Vector2(size.x, size.y)),
-                    //detail.buffer = buffer;
                     local = false
                 };
                 loadedList.Add(detail);
