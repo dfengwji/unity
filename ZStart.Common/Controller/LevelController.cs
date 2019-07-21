@@ -14,15 +14,13 @@ namespace ZStart.Common.Controller
         public string launcherScene = "LauncherStage";
         public Camera[] cameraEyes;
         public float maxShowTime = 1.0f;
-        public GameObject guideModule;
         public Transform loadingObj;
         public string currentScene = "";
 
         public BaseLevel loadedLevel;
-        public bool showGuide = false;
         public float roateSpeed = 300f;
         private bool showLoad = false;
-        public bool showLoading{
+        public bool ShowLoading{
             set{
                 loadingObj.gameObject.SetActive(value);
                 showLoad = value;
@@ -44,7 +42,7 @@ namespace ZStart.Common.Controller
 
         void Start()
         {
-            showLoading = true;
+            ShowLoading = true;
         }
 
         private void ShowScene(bool show)
@@ -123,7 +121,7 @@ namespace ZStart.Common.Controller
 
         IEnumerator InitInspector()
         {
-            showLoading = true;
+            ShowLoading = true;
             AsyncOperation async = SceneManager.LoadSceneAsync(launcherScene);
             async.allowSceneActivation = false;
             while (!async.isDone)
@@ -141,26 +139,8 @@ namespace ZStart.Common.Controller
             yield return new WaitForSeconds(0.2f);
             loadedLevel.ShowSky();
 
-            showLoading = false;
-            Debug.LogWarning("InitInspector. guideModule == " + guideModule);
-            if (showGuide)
-            {
-                if (guideModule == null)
-                {
-                    NotifyManager.SendNotify(Enum.NotifyType.OnGuideComplete, null);
-                }
-                else
-                    guideModule.SetActive(true);
-            }
-            else
-            {
-                if (guideModule != null)
-                    guideModule.SetActive(false);
-                NotifyManager.SendNotify(Enum.NotifyType.OnGuideComplete, null);
-            }
-           
-            yield return null;
-            ZLog.Log("LevelController... InitInspector.....");
+            ShowLoading = false;
+            ZLog.Log("LevelController... InitInspector.....complete");
             NotifyManager.SendNotify(Enum.NotifyType.OnSceneChanged, currentScene);
             SwitchLevel("");
         }
@@ -173,7 +153,7 @@ namespace ZStart.Common.Controller
            
             yield return new WaitForSeconds(0.5f);
             RenderSettings.skybox = null;
-            showLoading = true;
+            ShowLoading = true;
             yield return new WaitForSeconds(0.1f);
            
             AsyncOperation async = SceneManager.LoadSceneAsync(scene,LoadSceneMode.Single);
@@ -190,7 +170,7 @@ namespace ZStart.Common.Controller
             }
           
             yield return null;
-            showLoading = false;
+            ShowLoading = false;
             loadedLevel = GameObject.FindObjectOfType<BaseLevel>();
             NotifyManager.SendNotify(Enum.NotifyType.OnSceneChanged, currentScene);
             yield return new WaitForSeconds(0.2f);
@@ -244,7 +224,7 @@ namespace ZStart.Common.Controller
                 AssetBundle bundle = ZBundleManager.Instance.GetBundle(uid);
                 if (bundle == null || bundle.GetAllScenePaths() == null || bundle.GetAllScenePaths().Length < 1)
                     return;
-                showLoading = true;
+                ShowLoading = true;
                 TryLoadScene(bundle);
             }
             else

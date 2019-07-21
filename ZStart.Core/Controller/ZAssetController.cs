@@ -72,7 +72,7 @@ namespace ZStart.Core.Controller
 
         void Start()
         {
-            _isStartEnd = true;
+            isStartEnd = true;
         }
 
         public void InitData(List<EffectInfo> effects,List<AudioInfo> audios,List<AssetInfo> assets, AssetVarietyInfo[] varieties)
@@ -86,7 +86,7 @@ namespace ZStart.Core.Controller
         public void PreInstant(Transform parent,UnityAction<float> progress, UnityAction complete)
         {
             effectParent = parent;
-            if (_isStartEnd) 
+            if (isStartEnd) 
             {
                 StartCoroutine(InstantInspector(progress, complete));
             }

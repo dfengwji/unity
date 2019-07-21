@@ -1,13 +1,12 @@
 ﻿using UnityEngine.Events;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
 namespace ZStart.Common.View.Widget
 {
     public class SelectedToggle : LabelToggle
     {
         private UnityAction<SelectedToggle, bool> callFun;
         private bool hover = false;
-        public bool isHighlight
+        public bool IsHighlight
         {
             set
             {

@@ -1,11 +1,11 @@
-﻿using ZStart.Common.Util;
-using Org.BouncyCastle.Crypto.Parameters;
+﻿using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using System;
-using System.Collections.Generic;
+using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using UnityEngine;
+using ZStart.Common.Util;
 
 namespace ZStart.Common.Helper
 {
@@ -13,6 +13,7 @@ namespace ZStart.Common.Helper
     {
         public enum KMSState
         {
+            Unknown = -1,
             Correct = 0,
             ValidatorError = 1,
             FormatError = 2,
@@ -101,7 +102,8 @@ namespace ZStart.Common.Helper
             {
                 ivs[i] = keys[i];
             }
-            RijndaelManaged rm = new RijndaelManaged
+            //RijndaelManaged rm = new RijndaelManaged
+            AesManaged rm = new AesManaged
             {
                 Key = keys,
                 Mode = CipherMode.CBC,
@@ -131,7 +133,7 @@ namespace ZStart.Common.Helper
             {
                 ivs[i] = keys[i];
             }
-            RijndaelManaged rm = new RijndaelManaged
+            AesManaged rm = new AesManaged
             {
                 Key = keys,
                 Mode = CipherMode.CBC,
@@ -139,10 +141,19 @@ namespace ZStart.Common.Helper
                 IV = ivs,
             };
 
-            ICryptoTransform cTransform = rm.CreateDecryptor();
-            Byte[] result = cTransform.TransformFinalBlock(data, 0, data.Length);
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (CryptoStream cs = new CryptoStream(ms, rm.CreateDecryptor(), CryptoStreamMode.Write))
+                {
+                    cs.Write(data, 0, data.Length);
+                }
 
-            return result;
+                return ms.ToArray();
+            }
+            //ICryptoTransform cTransform = rm.CreateDecryptor();
+            //Byte[] result = cTransform.TransformFinalBlock(data, 0, data.Length);
+
+            //return result;
         }
 
         /// <summary>  
@@ -273,86 +284,98 @@ namespace ZStart.Common.Helper
 
         private KMSState VerifyLicense(string license, string appKey, string appSecret, string deviceCode)
         {
-            string[] array = license.Split('\n');
-            if (array == null || array.Length < 14)
+            try
             {
-                return KMSState.ValidatorError;
-            }
 
-            if ("key:" != array[0] ||
-                "code:" != array[2] ||
-                "timestamp:" != array[4] ||
-                "expiry:" != array[6] ||
-                "storage:" != array[8] ||
-                "cer:" != array[10] ||
-                "sig:" != array[12])
-            {
-                return KMSState.FormatError;
-            }
 
-            string password = GetPassword(appKey, appSecret);
-           
-            //take payload
-            string payload = "key:\n" + appKey + "\ncode:\n" + deviceCode + "\ntimestamp:\n"+ array[5] + "\nexpiry:\n"+ array[7] + "\nstorage:\n"+ array[9] + "\ncer:\n"+ array[11];
-           
-            byte[] cipher = AesEncrypt(payload, password);
-         
-            string payloadMd5 = ToMD5(cipher);
-            //Debug.Log("psw = " + password);
-            //Debug.Log("payload = " + payload);
-            //Debug.Log("payload md5 = " + payloadMd5);
-            //take cer
-            byte[] cerCipher = Convert.FromBase64String(array[11]);
-
-            if (cerCipher == null)
-            {
-                return KMSState.CERError;
-            }
-
-            byte[] cer = AesDecrypt(cerCipher, password);
-            if (cer == null)
-            {
-                return KMSState.AESDecryptError;
-            }
-
-            //take sig
-            byte[] sigCipher = Convert.FromBase64String(array[13].Trim());
-            if (sigCipher == null)
-            {
-                return KMSState.SigError;
-            }
-           
-            string cerStr = Encoding.UTF8.GetString(cer);          
-            bool success = RSAVerify(cerStr, Encoding.UTF8.GetBytes(payloadMd5), sigCipher);
-            if (!success)
-            {
-                return KMSState.SignCheckFailed;
-            }
-
-            long timestamp = 0;
-            bool suc = long.TryParse(array[5], out timestamp);
-            if (!suc)
-            {
-                return KMSState.TimeError;
-            }
-
-            long expiry = 0;
-            bool ss = long.TryParse(array[7], out expiry);
-            if (!ss)
-            {
-                return KMSState.ExpiryError;
-            }
-
-            if (expiry != 0)
-            {
-                long now = (DateTime.Now.ToUniversalTime().Ticks - 621355968000000000) / 10000000;
-                if (now - timestamp > expiry * 24 * 60 * 60)
+                string[] array = license.Split('\n');
+                if (array == null || array.Length < 14)
                 {
-                    return KMSState.Expiry;
+                    return KMSState.ValidatorError;
                 }
-            }
 
-            return KMSState.Correct;
+                if ("key:" != array[0] ||
+                    "code:" != array[2] ||
+                    "timestamp:" != array[4] ||
+                    "expiry:" != array[6] ||
+                    "storage:" != array[8] ||
+                    "cer:" != array[10] ||
+                    "sig:" != array[12])
+                {
+                    Debug.Log(array[0] + ";" + array[2] + ";" + array[4] + ";" + array[6] + ";" + array[8] + ";" + array[10] + ";" + array[12]);
+                    return KMSState.FormatError;
+                }
+
+                string password = GetPassword(appKey, appSecret);
+
+                //take payload
+                string payload = "key:\n" + appKey + "\ncode:\n" + deviceCode + "\ntimestamp:\n" + array[5] + "\nexpiry:\n" + array[7] + "\nstorage:\n" + array[9] + "\ncer:\n" + array[11];
+
+                Debug.Log("try aes encrypt!!!"+ password);
+                byte[] cipher = AesEncrypt(payload, password);
+                string payloadMd5 = ToMD5(cipher);
+                //Debug.Log("psw = " + password);
+                //Debug.Log("payload = " + payload);
+                //Debug.Log("payload md5 = " + payloadMd5);
+                //take cer
+                byte[] cerCipher = Convert.FromBase64String(array[11]);
+
+                if (cerCipher == null)
+                {
+                    return KMSState.CERError;
+                }
+
+                Debug.Log("try aes decrypt!!!"+ password);
+                byte[] cer = AesDecrypt(cerCipher, password);
+                if (cer == null)
+                {
+                    return KMSState.AESDecryptError;
+                }
+
+                //take sig
+                byte[] sigCipher = Convert.FromBase64String(array[13].Trim());
+                if (sigCipher == null)
+                {
+                    return KMSState.SigError;
+                }
+
+                string cerStr = Encoding.UTF8.GetString(cer);
+                bool success = RSAVerify(cerStr, Encoding.UTF8.GetBytes(payloadMd5), sigCipher);
+                if (!success)
+                {
+                    return KMSState.SignCheckFailed;
+                }
+
+                long timestamp = 0;
+                bool suc = long.TryParse(array[5], out timestamp);
+                if (!suc)
+                {
+                    return KMSState.TimeError;
+                }
+
+                long expiry = 0;
+                bool ss = long.TryParse(array[7], out expiry);
+                if (!ss)
+                {
+                    return KMSState.ExpiryError;
+                }
+
+                if (expiry != 0)
+                {
+                    long now = (DateTime.Now.ToUniversalTime().Ticks - 621355968000000000) / 10000000;
+                    if (now - timestamp > expiry * 24 * 60 * 60)
+                    {
+                        return KMSState.Expiry;
+                    }
+                }
+
+                return KMSState.Correct;
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning(e.Message);
+                return KMSState.Unknown;
+            }
         }
     }
 }

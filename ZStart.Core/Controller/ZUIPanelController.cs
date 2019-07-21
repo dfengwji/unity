@@ -406,7 +406,7 @@ namespace ZStart.Core.Controller
 
         IEnumerator OpenInspector(ZUIPanel panel, UIParamInfo info)
         {
-            while (panel.isStartEnd == false)
+            while (panel.IsStartEnd == false)
             {
                 yield return null;
             }

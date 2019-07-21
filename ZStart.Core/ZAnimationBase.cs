@@ -16,7 +16,7 @@ namespace ZStart.Core
                 animationObj = target.gameObject.AddComponent<Animation>();
             }
 
-            _isStartEnd = true;
+            isStartEnd = true;
         }
 
         public virtual void Play() { }

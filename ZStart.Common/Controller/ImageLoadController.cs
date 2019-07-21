@@ -15,20 +15,20 @@ namespace ZStart.Common.Controller
         public string identify = "";
         public Texture2D texture = null;
         public string url = "";
-        public int screenIdx = 0;
+        public int flag = 0;
         public Vector2 size = Vector2.zero;
         public byte[] buffer;
         public bool local = false;
 
         public ImageInfo() { }
 
-        public ImageInfo(string uuid, string app, Texture2D icon, string url, int screenIdx)
+        public ImageInfo(string uuid, string app, Texture2D icon, string url, int flag)
         {
             this.uid = uuid;
             this.identify = app;
             this.texture = icon;
             this.url = url;
-            this.screenIdx = screenIdx;
+            this.flag = flag;
         }
 
         public string GetUID()
@@ -49,7 +49,7 @@ namespace ZStart.Common.Controller
         public string identify;
         public string package;
         public string url;
-        public int screenIdx;
+        public int flag;
 
         public override string ToString()
         {
@@ -84,16 +84,16 @@ namespace ZStart.Common.Controller
         /// <param name="appid"></param>
         /// <param name="package"></param>
         /// <param name="url"></param>
-        /// <param name="screen">logo == -1</param>
-        private void LoadRemote(string identify, string url, int screen)
+        /// <param name="flag">logo == -1</param>
+        private void LoadRemote(string identify, string url, int flag)
         {
-            //ZLog.Log("ImageLoadController.....uid = " + appid + "; package = " + package + "; url = " + url + "; index = " + screen + ";path = " + path);
-            if (string.IsNullOrEmpty(url) && screen == 0)
+            //ZLog.Log("ImageLoadController.....uid = " + appid + "; package = " + package + "; url = " + url + "; index = " + flag + ";path = " + path);
+            if (string.IsNullOrEmpty(url) && flag == 0)
             {
                 LoadFromApk(identify);
                 return;
             }
-            string uid = GetUID(identify, screen);
+            string uid = GetUID(identify, flag);
             if (HasRequest(uid))
                 return;
             RequestInfo info = new RequestInfo
@@ -102,7 +102,7 @@ namespace ZStart.Common.Controller
                 identify = identify,
                 url = url,
                 package = identify,
-                screenIdx = screen
+                flag = flag
             };
             requestList.Add(info);
 
@@ -118,7 +118,7 @@ namespace ZStart.Common.Controller
             {
                 uid = GetUID(identify, -1),
                 identify = identify,
-                screenIdx = -1,
+                flag = -1,
                 package = "",
                 url = path,
             };
@@ -148,18 +148,15 @@ namespace ZStart.Common.Controller
             }
         }
 
-        public Texture2D GetTexture(string identify, string url, Vector2 size, int screen = 0)
+        public Texture2D GetTexture(string identify, string url, Vector2 size, int flag = 0)
         {
-            string uid = GetUID(identify, screen);
-            bool isWeb = IsWebPath(url);
-            if(!isWeb)
-                uid = GetUID(identify, -1);
+            string uid = GetUID(identify, flag);
             ImageInfo info = GetImageInfo(uid);
             if (info != null)
                 return info.texture;
-            if (isWeb)
+            if (IsWebPath(url))
             {
-                LoadRemote(identify, url, screen);
+                LoadRemote(identify, url, flag);
             }
             else
             {
@@ -170,23 +167,20 @@ namespace ZStart.Common.Controller
             return null;
         }
 
-        public Texture2D GetTexture(string identify, string url, int screen = 0)
+        public Texture2D GetTexture(string identify, string url, int flag = 0)
         {
-            return GetTexture(identify, url, defaultSize, screen);
+            return GetTexture(identify, url, defaultSize, flag);
         }
 
-        public ImageInfo GetImageInfo(string identify, string url, int screen = 0)
+        public ImageInfo GetImageInfo(string identify, string url, int flag = 0)
         {
-            string uid = GetUID(identify, screen);
-            bool isWeb = IsWebPath(url);
-            if (!isWeb)
-                uid = GetUID(identify, -1);
+            string uid = GetUID(identify, flag);
             ImageInfo info = GetImageInfo(uid);
             if (info != null && info.url == url)
                 return info;
             if (IsWebPath(url))
             {
-                LoadRemote(identify, url, screen);
+                LoadRemote(identify, url, flag);
             }
             else
             {
@@ -342,7 +336,7 @@ namespace ZStart.Common.Controller
                     FileManager.Instance.WriteFile(path, buffer);
                 }
                 Texture2D texture = CreateTexture(buffer, new Vector2(size.x, size.y));
-                ImageInfo detail = new ImageInfo(info.uid, info.identify, texture, info.url, info.screenIdx)
+                ImageInfo detail = new ImageInfo(info.uid, info.identify, texture, info.url, info.flag)
                 {
                     local = false
                 };

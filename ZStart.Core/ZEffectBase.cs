@@ -28,7 +28,7 @@ namespace ZStart.Core
             animator = GetComponent<Animator>();
             if (isStartPlay)
                 Play();
-            _isStartEnd = true;
+            isStartEnd = true;
         }
 
         IEnumerator DelayDestroy()
@@ -44,7 +44,7 @@ namespace ZStart.Core
 
         IEnumerator DelayPlay()
         {
-            while (_isStartEnd == false)
+            while (isStartEnd == false)
             {
                 yield return null;
             }
@@ -74,7 +74,7 @@ namespace ZStart.Core
 
         public void Pause()
         {
-            if (isStartEnd == false) return;
+            if (IsStartEnd == false) return;
             if (isPause) return;
             isPause = true;
             for (int i = 0; i < particleEffects.Length; i++)
@@ -87,7 +87,7 @@ namespace ZStart.Core
         public void Play()
         {
             isPause = false;
-            if (_isStartEnd)
+            if (isStartEnd)
             {
                 ActivePlay();
             }

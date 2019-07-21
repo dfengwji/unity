@@ -17,18 +17,18 @@ namespace ZStart.Core
             }
         }
         
-        [SerializeField]
-        private bool _isStartEnd = false;
-        public bool isStartEnd
+        [HideInInspector]
+        private bool isStartEnd = false;
+        public bool IsStartEnd
         {
-            get { return _isStartEnd; }
+            get { return isStartEnd; }
         }
 
 
         protected override void Start()
         {
             //Debug.LogWarning("Can not override the Start,replace of Init that script name = "+this.name);
-            _isStartEnd = true;
+            isStartEnd = true;
         }
 
         public virtual void Clear()

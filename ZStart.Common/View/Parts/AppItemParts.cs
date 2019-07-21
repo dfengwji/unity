@@ -41,7 +41,7 @@ namespace ZStart.Common.View.Parts
         protected bool isHover = true;
         public string identify = "";
         protected UnityAction<AppItemParts, OptionType> clickCallFun;
-        private bool isLocked = false;
+        protected bool isLocked = false;
 
         public bool ShowAndroid
         {
@@ -217,12 +217,12 @@ namespace ZStart.Common.View.Parts
 
         public virtual void OnPointerEnter(PointerEventData eventData)
         {
-            SetHighlight(true);
+            
         }
 
         public virtual void OnPointerExit(PointerEventData eventData)
         {
-            SetHighlight(false);
+           
         }
 
         public virtual void OnPointerClick(PointerEventData eventData)

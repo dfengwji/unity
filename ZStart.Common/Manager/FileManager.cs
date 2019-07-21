@@ -478,6 +478,13 @@ namespace ZStart.Common.Manager
             ZLog.Log("WriteCertificate....");
         }
 
+        public void RemoveCertificate()
+        {
+            if (File.Exists(certificatePath))
+                File.Delete(certificatePath);
+            ZLog.Log("RemoveCertificate....");
+        }
+
         public void WriteADs(string json)
         {
             string path = Path.Combine(adDirectory, "ads.json");

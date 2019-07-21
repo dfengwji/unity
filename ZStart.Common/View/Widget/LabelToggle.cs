@@ -14,7 +14,7 @@ namespace ZStart.Common.View.Widget
                 label = GetComponentInChildren<Text>();
         }
 
-        public bool isEnable
+        public bool IsEnable
         {
             set
             {
@@ -39,7 +39,7 @@ namespace ZStart.Common.View.Widget
         {
             if (label == null)
                 label = GetComponentInChildren<Text>();
-            label.color = new UnityEngine.Color(label.color.r,label.color.g,label.color.b,alpha);
+            label.color = new Color(label.color.r,label.color.g,label.color.b,alpha);
         }
 
         public void Show()

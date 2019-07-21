@@ -16,10 +16,11 @@ namespace ZStart.Core
             }
         }
 
-        protected bool _isStartEnd = false;
-        public bool isStartEnd
+        [HideInInspector]
+        protected bool isStartEnd = false;
+        public bool IsStartEnd
         {
-            get { return _isStartEnd; }
+            get { return isStartEnd; }
         }
         protected bool _disposed = false;
         public void Dispose()
