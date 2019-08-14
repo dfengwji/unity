@@ -234,7 +234,7 @@ namespace ZStart.Common.Util
 
         public static string GetDirectory(string path)
         {
-            if (Directory.Exists(path))
+            if (string.IsNullOrEmpty(path) || Directory.Exists(path))
             {
                 return path;
             }

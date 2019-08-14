@@ -8,6 +8,8 @@ namespace ZStart.Common.View
     {
         public Transform effectPoint;
         public RectTransform contentBox;
+        public GameObject loadingBox;
+
         [SerializeField]
         protected UIParamInfo paramInfo;
         private bool isStarted = false;
@@ -18,6 +20,23 @@ namespace ZStart.Common.View
                 return isStarted;
             }
         }
+
+        public bool IsLoading
+        {
+            set
+            {
+                if (loadingBox != null)
+                    loadingBox.SetActive(value);
+            }
+            get
+            {
+                if (loadingBox != null)
+                    return loadingBox.activeSelf;
+                else
+                    return false;
+            }
+        }
+
         protected override void Start()
         {
             isStarted = true;

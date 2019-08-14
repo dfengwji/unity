@@ -37,7 +37,7 @@ namespace ZStart.Core.Controller
 
     public class ZAssetController : ZSingletonBehaviour<ZAssetController>
     {
-        public Transform effectParent;
+        public Transform sleepParent;
         public int poolSize = 100;
         private Dictionary<string, AudioClip> soundDic;
         private Dictionary<string, GameObject> prefabDic;
@@ -85,7 +85,7 @@ namespace ZStart.Core.Controller
 
         public void PreInstant(Transform parent,UnityAction<float> progress, UnityAction complete)
         {
-            effectParent = parent;
+            sleepParent = parent;
             if (isStartEnd) 
             {
                 StartCoroutine(InstantInspector(progress, complete));
@@ -116,7 +116,7 @@ namespace ZStart.Core.Controller
            
             while (index < effectDataList.Count)
             {
-                CreateEffect(effectDataList[index].id, effectParent, false);
+                CreateEffect(effectDataList[index].id, sleepParent, false);
                 index++;
                 sum++;
                 progress(sum / length);
@@ -137,7 +137,7 @@ namespace ZStart.Core.Controller
             while (index < assets.Count)
             {
                 AssetInfo info = assets[index];
-                CreateAsset(info.name, info.asset, effectParent);
+                CreateAsset(info.name, info.asset, sleepParent);
                 index++;
                 sum++;
                 progress(sum / length);
@@ -588,7 +588,7 @@ namespace ZStart.Core.Controller
         {
             if (target == null)
                 return;
-            target.SetParent(effectParent);
+            target.SetParent(sleepParent);
             ZEffectBase effect = target.GetComponent<ZEffectBase>();
             for (int i = 0; i < activedEffects.Count;i++ )
             {
@@ -610,7 +610,7 @@ namespace ZStart.Core.Controller
                 PoolObjectInfo info = assetList[i];
                 GameObject go = info.gameObject;
 
-                if (info.component != null && !go.activeSelf && path == info.path && info.transform.parent == mTransform)
+                if (info.component != null && !go.activeSelf && path == info.path && info.transform.parent == sleepParent)
                 {
                     if (typeof(T) == info.component.GetType() || info.component.GetType().IsSubclassOf(typeof(T)))
                     {
@@ -627,8 +627,9 @@ namespace ZStart.Core.Controller
             {
                 PoolObjectInfo info = assetList[i];
                 
-                if (info.component != null && !info.gameObject.activeSelf && uname == info.name && info.transform.parent == mTransform)
+                if (info.component != null && !info.gameObject.activeSelf && uname == info.name && info.transform.parent == sleepParent)
                 {
+                    //Debug.LogError("GetSleepAssetByName...." + uname + ";info = " + info.name + "; active = " + info.gameObject.activeSelf);
                     if (typeof(T) == info.component.GetType() || info.component.GetType().IsSubclassOf(typeof(T)))
                     {
                         return info.component as T;
@@ -644,7 +645,7 @@ namespace ZStart.Core.Controller
             {
                 PoolObjectInfo info = assetList[i];
                
-                if (info.component != null && !info.gameObject.activeInHierarchy && info.name == typeof(T).Name && info.transform.parent == mTransform)
+                if (info.component != null && !info.gameObject.activeInHierarchy && info.name == typeof(T).Name && info.transform.parent == sleepParent)
                 {
                     if (typeof(T) == info.component.GetType() || info.component.GetType().IsSubclassOf(typeof(T)))
                     {
@@ -801,7 +802,7 @@ namespace ZStart.Core.Controller
             if (target == null)
                 return;
             target.gameObject.SetActive(false);
-            target.SetParent(effectParent,false);
+            target.SetParent(sleepParent,false);
         }
 
         public void DestroyAsset(Transform target)
@@ -915,7 +916,7 @@ namespace ZStart.Core.Controller
                 ZEffectBase tool = effectList[i];
                 if (tool != null && tool.gameObject.activeInHierarchy)
                 {
-                    tool.transform.parent = effectParent;
+                    tool.transform.parent = sleepParent;
                     tool.gameObject.SetActive(false);
                 }
             }
@@ -930,7 +931,7 @@ namespace ZStart.Core.Controller
                 PoolObjectInfo info = assetList[i];
                 if (info.gameObject != null && info.gameObject.activeInHierarchy)
                 {
-                    info.transform.parent = effectParent;
+                    info.transform.parent = sleepParent;
                     info.gameObject.SetActive(false);
                 }
                 else if (info.gameObject == null)

@@ -89,5 +89,9 @@
         OnBrowerFlyOut,
         
         OnPlayerUpdate,
+
+        OnAudioPlay,
+        OnAudioRead,
+        OnAudioLoadError
     }
 }

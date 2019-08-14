@@ -120,9 +120,9 @@ namespace ZStart.Core.Common
 
         public NotifyProxy()
         {
-            notifyList = new List<NotifyObject<T>>();
-            cacheNotifys = new List<NotifyObject<T>>();
-            registerSets = new List<NotifySet<T>>();
+            notifyList = new List<NotifyObject<T>>(50);
+            cacheNotifys = new List<NotifyObject<T>>(50);
+            registerSets = new List<NotifySet<T>>(50);
             ZLog.Log("NotifyProxy...create!!!"+typeof(T).Name);
         }
 
@@ -142,7 +142,10 @@ namespace ZStart.Core.Common
             }
             if (cacheNotifys.Count > 0)
             {
-                notifyList.AddRange(cacheNotifys.ToArray());
+                for (int i = 0;i < cacheNotifys.Count;i++)
+                {
+                    notifyList.Add(cacheNotifys[i]);
+                }
                 cacheNotifys.Clear();
             }
         }

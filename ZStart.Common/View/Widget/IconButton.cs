@@ -119,6 +119,7 @@ namespace ZStart.Common.View.Widget
             hoverCallFun = null;
             clickFun = null;
             id = 0;
+            identify = "";
         }
 
         public void ShowIcon(bool show)
