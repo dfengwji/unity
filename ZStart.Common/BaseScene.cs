@@ -6,6 +6,7 @@ namespace ZStart.Common.Level
     {
         public Material skybox;
         public Camera sceneCamera;
+        public string uname = "";
         public void ShowSky()
         {
             RenderSettings.skybox = skybox;
@@ -22,5 +23,6 @@ namespace ZStart.Common.Level
             //RenderSettings.skybox = null;
             gameObject.SetActive(false);
         }
+
     }
 }

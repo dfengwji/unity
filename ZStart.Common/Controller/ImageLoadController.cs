@@ -50,6 +50,7 @@ namespace ZStart.Common.Controller
         public string package;
         public string url;
         public int flag;
+        public bool isCache;
 
         public override string ToString()
         {
@@ -85,10 +86,10 @@ namespace ZStart.Common.Controller
         /// <param name="package"></param>
         /// <param name="url"></param>
         /// <param name="flag">logo == -1</param>
-        private void LoadRemote(string identify, string url, int flag)
+        private void LoadRemote(string identify, string url, int flag, bool cache)
         {
             //ZLog.Log("ImageLoadController.....uid = " + appid + "; package = " + package + "; url = " + url + "; index = " + flag + ";path = " + path);
-            if (string.IsNullOrEmpty(url) && flag == 0)
+            if (string.IsNullOrEmpty(url))
             {
                 LoadFromApk(identify);
                 return;
@@ -102,7 +103,8 @@ namespace ZStart.Common.Controller
                 identify = identify,
                 url = url,
                 package = identify,
-                flag = flag
+                flag = flag,
+                isCache = cache
             };
             requestList.Add(info);
 
@@ -121,6 +123,7 @@ namespace ZStart.Common.Controller
                 flag = -1,
                 package = "",
                 url = path,
+                isCache = true
             };
             ImageInfo tmp = AddImage(bytes, info, "", new Vector2(size.x, size.y));
             if (tmp != null)
@@ -148,7 +151,7 @@ namespace ZStart.Common.Controller
             }
         }
 
-        public Texture2D GetTexture(string identify, string url, Vector2 size, int flag = 0)
+        public Texture2D GetTexture(string identify, string url, Vector2 size, int flag = 0, bool cache = true)
         {
             string uid = GetUID(identify, flag);
             ImageInfo info = GetImageInfo(uid);
@@ -156,7 +159,7 @@ namespace ZStart.Common.Controller
                 return info.texture;
             if (IsWebPath(url))
             {
-                LoadRemote(identify, url, flag);
+                LoadRemote(identify, url, flag, cache);
             }
             else
             {
@@ -167,12 +170,12 @@ namespace ZStart.Common.Controller
             return null;
         }
 
-        public Texture2D GetTexture(string identify, string url, int flag = 0)
+        public Texture2D GetTexture(string identify, string url, int flag = 0, bool cache = true)
         {
-            return GetTexture(identify, url, defaultSize, flag);
+            return GetTexture(identify, url, defaultSize, flag, cache);
         }
 
-        public ImageInfo GetImageInfo(string identify, string url, int flag = 0)
+        public ImageInfo GetImageInfo(string identify, string url, int flag = 0, bool cache = true)
         {
             string uid = GetUID(identify, flag);
             ImageInfo info = GetImageInfo(uid);
@@ -180,7 +183,7 @@ namespace ZStart.Common.Controller
                 return info;
             if (IsWebPath(url))
             {
-                LoadRemote(identify, url, flag);
+                LoadRemote(identify, url, flag, cache);
             }
             else
             {
@@ -216,23 +219,31 @@ namespace ZStart.Common.Controller
             if (requestList.Count > 0)
             {
                 RequestInfo info = requestList[0];
-                string path = Path.Combine(FileManager.LogoDirectory, info.identify + ".jpg");
-                if (File.Exists(path))
+                if (info.isCache)
                 {
-                    byte[] bytes = File.ReadAllBytes(path);
-                    AddImage(bytes, info, "", new Vector2(defaultSize.x, defaultSize.y));
-                    RemoveRequest(info.uid);
-                    LoadNext();
-                }else if (File.Exists(info.url))
-                {
-                    byte[] bytes = File.ReadAllBytes(info.url);
-                    AddImage(bytes, info, "", new Vector2(defaultSize.x, defaultSize.y));
-                    RemoveRequest(info.uid);
-                    LoadNext();
+                    string path = Path.Combine(FileManager.LogoDirectory, info.identify + ".jpg");
+                    if (File.Exists(path))
+                    {
+                        byte[] bytes = File.ReadAllBytes(path);
+                        AddImage(bytes, info, "", new Vector2(defaultSize.x, defaultSize.y));
+                        RemoveRequest(info.uid);
+                        LoadNext();
+                    }
+                    else if (File.Exists(info.url))
+                    {
+                        byte[] bytes = File.ReadAllBytes(info.url);
+                        AddImage(bytes, info, "", new Vector2(defaultSize.x, defaultSize.y));
+                        RemoveRequest(info.uid);
+                        LoadNext();
+                    }
+                    else
+                    {
+                        StartCoroutine(DownloadInspector(info, path));
+                    }
                 }
                 else
                 {
-                    StartCoroutine(DownloadInspector(info, path));
+                    StartCoroutine(DownloadInspector(info, null));
                 }
             }
         }

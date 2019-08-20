@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using ZStart.Common.Level;
@@ -17,7 +18,7 @@ namespace ZStart.Common.Controller
         public Transform loadingObj;
         public string currentScene = "";
 
-        public BaseScene loadedScene;
+        public List<BaseScene> loadedScenes;
         public float roateSpeed = 300f;
         private bool showLoad = false;
         public bool ShowLoading{
@@ -38,6 +39,8 @@ namespace ZStart.Common.Controller
             base.Awake();
             DontDestroyOnLoad(gameObject);
             SceneManager.sceneLoaded += SceneLoaded;
+            SceneManager.sceneUnloaded += SceneUnloaded;
+            loadedScenes = new List<BaseScene>();
         }
 
         void Start()
@@ -64,58 +67,93 @@ namespace ZStart.Common.Controller
             }
         }
 
-        void UpdateAction()
-        {
-#if UNITY_EDITOR
-            if(Input.GetKeyDown(KeyCode.Alpha0)){
-                SwitchLevel("");
-            }else if(Input.GetKeyDown(KeyCode.Alpha1)){
-                SwitchLevel(Application.streamingAssetsPath + "/screen80s.hd");
-            }
-            else if (Input.GetKeyDown(KeyCode.Alpha2))
-            {
-                SwitchLevel(Application.streamingAssetsPath + "/daylight-1.hd");
-            }
-            else if (Input.GetKeyDown(KeyCode.Alpha3))
-            {
-                SwitchLevel(Application.streamingAssetsPath + "/daylight-2.hd");
-            }
-            else if (Input.GetKeyDown(KeyCode.Alpha4))
-            {
-                SwitchLevel(Application.streamingAssetsPath + "/daylight-3.hd");
-            }
-            else if (Input.GetKeyDown(KeyCode.Alpha5))
-            {
-                SwitchLevel(Application.streamingAssetsPath + "/daylight-3.hd");
-            }
-            else if (Input.GetKeyDown(KeyCode.Alpha6))
-            {
-                SwitchLevel(Application.streamingAssetsPath + "/daylight-5.hd");
-            }
-#endif
-        }
-
         private void SceneLoaded(Scene scene,LoadSceneMode mode)
         {
-            ZLog.Log("SceneLoaded....." + scene.name + ";mode = " + mode);
+            ZLog.Log("SceneController...the scene had loaded that name = " + scene.name + ";mode = " + mode);
             currentScene = scene.name;
-            if(loadedScene == null)
-                loadedScene = FindObjectOfType<BaseScene>();
+            AddOne(scene);
+            NotifyManager.SendNotify(Enum.NotifyType.OnSceneLoaded, currentScene);
+        }
+
+        private void SceneUnloaded(Scene scene)
+        {
+            ZLog.Warning("SceneController...the scene had unloaded that name = " + scene.name);
+            Remove(scene.name);
+            NotifyManager.SendNotify(Enum.NotifyType.OnSceneUnloaded, scene.name);
+            if (loadedScenes.Count > 0)
+            {
+                currentScene = loadedScenes[loadedScenes.Count - 1].name;
+            }
+            else
+            {
+                currentScene = "";
+            }
+        }
+
+        private void AddOne(Scene scene)
+        {
+            if (HadOne(scene.name))
+                return;
+            GameObject[] array = scene.GetRootGameObjects();
+            for (int i = 0; i < array.Length; i += 1)
+            {
+                var tmp = array[i].GetComponent<BaseScene>();
+                if (tmp != null)
+                {
+                    tmp.uname = scene.name;
+                    loadedScenes.Add(tmp);
+                    break;
+                }
+            }
+        }
+
+        private void Remove(string uname)
+        {
+            for (int i = 0; i < loadedScenes.Count; i += 1)
+            {
+                if (loadedScenes[i].uname == uname)
+                {
+                    loadedScenes.RemoveAt(i);
+                    break;
+                }
+            }
+        }
+
+        public BaseScene Get(string uname)
+        {
+            for (int i = 0; i < loadedScenes.Count; i += 1)
+            {
+                if (loadedScenes[i].uname == uname)
+                    return loadedScenes[i];
+            }
+            return null;
+        }
+
+        public bool HadOne(string uname)
+        {
+            for (int i = 0; i < loadedScenes.Count; i += 1)
+            {
+                if (loadedScenes[i].uname == uname)
+                    return true;
+            }
+            return false;
         }
 
         public void Show()
         {
-            if (loadedScene != null)
+            BaseScene scene = Get(currentScene);
+            if (scene != null)
             {
-                loadedScene.Show();
+                scene.Show();
             }
         }
 
         public void Hide()
         {
-            if (loadedScene != null)
+            BaseScene scene = Get(currentScene);
+            if (scene != null)
             {
-                loadedScene.UnShow();
+                scene.UnShow();
             }
         }
 
@@ -135,19 +173,15 @@ namespace ZStart.Common.Controller
                 yield return null;
             }
             yield return null;
-            loadedScene = FindObjectOfType<BaseScene>();
-            yield return new WaitForSeconds(0.2f);
-            loadedScene.ShowSky();
-
+          
             ShowLoading = false;
-            ZLog.Log("LevelController... InitInspector.....complete");
-            NotifyManager.SendNotify(Enum.NotifyType.OnSceneChanged, currentScene);
-            SwitchScene("");
+            ZLog.Log("SceneController... InitInspector.....complete");
+            Switch("");
         }
 
-        IEnumerator LoadInspector(string scene,string flag)
+        IEnumerator LoadInspector(string scene,string flag, LoadSceneMode mode)
         {
-            ZLog.Log("switch scene!!!!from = " + currentScene + " to " + scene + " and flag = " + flag);
+            ZLog.Log("SceneController...switch scene!!!!from = " + currentScene + " to " + scene + " and flag = " + flag);
             if (currentScene == scene)
                 yield break;
            
@@ -156,7 +190,7 @@ namespace ZStart.Common.Controller
             ShowLoading = true;
             yield return new WaitForSeconds(0.1f);
            
-            AsyncOperation async = SceneManager.LoadSceneAsync(scene,LoadSceneMode.Single);
+            AsyncOperation async = SceneManager.LoadSceneAsync(scene, mode);
             async.allowSceneActivation = false;
             while (!async.isDone)
             {
@@ -171,49 +205,72 @@ namespace ZStart.Common.Controller
           
             yield return null;
             ShowLoading = false;
-            loadedScene = GameObject.FindObjectOfType<BaseScene>();
-            NotifyManager.SendNotify(Enum.NotifyType.OnSceneChanged, currentScene);
-            yield return new WaitForSeconds(0.2f);
-            loadedScene.ShowSky();
-            yield return null;
         }
 
-        public void InitScene()
+        IEnumerator UnLoadInspector(string scene)
+        {
+            ZLog.Log("SceneController...try unload scene that name = " + scene);
+            yield return new WaitForSeconds(0.2f);
+            RenderSettings.skybox = null;
+            ShowLoading = true;
+            yield return new WaitForSeconds(0.1f);
+
+            AsyncOperation async = SceneManager.UnloadSceneAsync(scene);
+            async.allowSceneActivation = false;
+            while (!async.isDone)
+            {
+                if (loadingObj != null)
+                    loadingObj.Rotate(Vector3.back, Time.deltaTime * roateSpeed);
+                yield return null;
+            }
+
+            yield return null;
+            ShowLoading = false;
+        }
+
+        public void Init()
         {
             StartCoroutine(InitInspector());
         }
 
-        public void SwitchScene(string path)
+        public void Unload(string uname)
         {
-            ZLog.Log("LevelController switch level = " + path);
+            if (!HadOne(uname))
+                return;
+            StartCoroutine(UnLoadInspector(uname));
+        }
+
+        public void Switch(string path, LoadSceneMode mode = LoadSceneMode.Single)
+        {
+            ZLog.Log("SceneController...try switch scene = " + path);
            
             if (string.IsNullOrEmpty(path))
             {
-                StartCoroutine(LoadInspector(defaultScene,""));
+                StartCoroutine(LoadInspector(defaultScene,"", mode));
             }
             else
             {
                 AssetBundle bundle = ZBundleManager.Instance.GetBundle(path);
                 if (bundle != null)
                 {
-                    TryLoadScene(bundle);
+                    TryLoad(bundle, mode);
                 }
                 else
                     ZBundleController.Instance.LoadByPath(path, Core.Enum.BundleType.Scene, BundleCompleteHandle);
             }
         }
 
-        public void LoadScene(string stage)
+        public void Load(string stage, LoadSceneMode mode = LoadSceneMode.Single)
         {
-            ZLog.Log("LevelController switch level = " + stage);
+            ZLog.Log("SceneController...try load scene = " + stage);
            
             if (string.IsNullOrEmpty(stage))
             {
-                StartCoroutine(LoadInspector(defaultScene, ""));
+                StartCoroutine(LoadInspector(defaultScene, "", mode));
             }
             else
             {
-                StartCoroutine(LoadInspector(stage, ""));
+                StartCoroutine(LoadInspector(stage, "", mode));
             }
         }
 
@@ -225,21 +282,21 @@ namespace ZStart.Common.Controller
                 if (bundle == null || bundle.GetAllScenePaths() == null || bundle.GetAllScenePaths().Length < 1)
                     return;
                 ShowLoading = true;
-                TryLoadScene(bundle);
+                TryLoad(bundle, LoadSceneMode.Additive);
             }
             else
             {
-                ZLog.Warning("can not load bundle!!! try check path = " + uid + " is valid!!");
+                ZLog.Warning("SceneController...can not load bundle!!! try check path = " + uid + " is valid!!");
             }
         }
 
-        private void TryLoadScene(AssetBundle bundle)
+        private void TryLoad(AssetBundle bundle, LoadSceneMode mode)
         {
             string scenePath = bundle.GetAllScenePaths()[0];
             string[] array = scenePath.Split('/');
             string scene = array[array.Length - 1].Replace(".unity", "");
-            ZLog.Log("load level inspector....scene = " + scene);
-            StartCoroutine(LoadInspector(scene, ""));
+            ZLog.Log("SceneController...load scene inspector....scene = " + scene);
+            StartCoroutine(LoadInspector(scene, "", mode));
         }
     }
 }

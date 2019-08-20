@@ -81,7 +81,7 @@ namespace ZStart.Common.Manager
         /// <summary>
         /// 播放音效
         /// </summary>
-        public void PlaySound(long audio, GameObject target)
+        public void PlaySound(long audio, GameObject target, AudioType format = AudioType.OGGVORBIS)
         {
             if (audio < 1 || target.activeInHierarchy == false)
                 return;
@@ -99,10 +99,10 @@ namespace ZStart.Common.Manager
                     clips.Add(info);
                 }
             }
-            ActiveSound(clip, target);
+            PlaySound(clip, target);
         }
 
-        public void PlaySound(string path, GameObject target)
+        public void PlaySound(string path, GameObject target, AudioType format = AudioType.OGGVORBIS)
         {
             if (string.IsNullOrEmpty(path) || target.activeInHierarchy == false)
                 return;
@@ -114,17 +114,17 @@ namespace ZStart.Common.Manager
                 {
                     if (loadCoroutine != null)
                         CallbackController.Instance.StopCoroutine(loadCoroutine);
-                    loadCoroutine = CallbackController.Instance.StartCoroutine(PlaySoundDelay(uid, path, target));
+                    loadCoroutine = CallbackController.Instance.StartCoroutine(PlaySoundDelay(uid, path, target, format));
                  }
             }
-            ActiveSound(clip, target);
+            PlaySound(clip, target);
         }
-
-        private IEnumerator PlaySoundDelay(string uid, string path, GameObject target)
+        
+        private IEnumerator PlaySoundDelay(string uid, string path, GameObject target, AudioType format)
         {
             isLoading = true;
             ZLog.Log("audio manager try load sound......path = " + path);
-            using (var www = UnityWebRequestMultimedia.GetAudioClip("file://" + path, AudioType.OGGVORBIS))
+            using (var www = UnityWebRequestMultimedia.GetAudioClip("file://" + path, format))
             {
                 yield return www.SendWebRequest();
                 isLoading = false;
@@ -147,14 +147,14 @@ namespace ZStart.Common.Manager
                     clip = clip
                 };
                 clips.Add(audioInfo);
-                ActiveSound(clip, target);
+                PlaySound(clip, target);
                 NotifyManager.SendNotify(NotifyType.OnAudioPlay, path);
             }
 
             loadCoroutine = null;
         }
 
-        private void ActiveSound(AudioClip clip, GameObject target)
+        public void PlaySound(AudioClip clip, GameObject target)
         {
             if (clip == null || target.activeInHierarchy == false)
                 return;
@@ -169,18 +169,18 @@ namespace ZStart.Common.Manager
                 soundList.Add(source);
         }
 
-        public bool PlayMusics(string uid, AudioLoad[] audios, bool loop)
+        public bool PlayMusics(string uid, AudioLoad[] audios, bool loop, AudioType format = AudioType.OGGVORBIS)
         {
             if (isLoading || audios == null || audios.Length < 1)
                 return false;
             ZLog.Log("audio manager play many music......uid = " + uid);
             if (loadCoroutine != null)
                 CallbackController.Instance.StopCoroutine(loadCoroutine);
-            loadCoroutine = CallbackController.Instance.StartCoroutine(LoadMultyInspector(uid, audios, loop));
+            loadCoroutine = CallbackController.Instance.StartCoroutine(LoadMultyInspector(uid, audios, loop, format));
             return true;
         }
 
-        IEnumerator LoadMultyInspector(string identify, AudioLoad[] audios, bool loop)
+        IEnumerator LoadMultyInspector(string identify, AudioLoad[] audios, bool loop, AudioType format)
         {
             int length = audios.Length;
             isLoading = true;
@@ -191,7 +191,7 @@ namespace ZStart.Common.Manager
                 AudioClip clip = GetClip(uid);
                 if (clip == null)
                 {
-                    using (var www = UnityWebRequestMultimedia.GetAudioClip("file://" + audios[i].path, AudioType.OGGVORBIS))
+                    using (var www = UnityWebRequestMultimedia.GetAudioClip("file://" + audios[i].path, format))
                     {
                         yield return www.SendWebRequest();
                         if (www.isNetworkError)
@@ -231,7 +231,7 @@ namespace ZStart.Common.Manager
             NotifyManager.SendNotify(NotifyType.OnAudioPlay, identify);
         }
 
-        public void PlayMusic(string path, GameObject target, bool loop)
+        public void PlayMusic(string path, GameObject target, bool loop, AudioType format = AudioType.OGGVORBIS)
         {
             if (string.IsNullOrEmpty(path) || target.activeInHierarchy == false || isLoading)
                 return;
@@ -246,7 +246,7 @@ namespace ZStart.Common.Manager
                     //new Thread(() => ReadFile(uid, path, target, loop)).Start();
                     if (loadCoroutine != null)
                         CallbackController.Instance.StopCoroutine(loadCoroutine);
-                    loadCoroutine = CallbackController.Instance.StartCoroutine(PlayMusicDelay(uid, path, target, loop));
+                    loadCoroutine = CallbackController.Instance.StartCoroutine(PlayMusicDelay(uid, path, target, loop, format));
                 }
             }
             else
@@ -256,11 +256,11 @@ namespace ZStart.Common.Manager
             }
         }
 
-        private IEnumerator PlayMusicDelay(string uid, string path, GameObject target, bool loop)
+        private IEnumerator PlayMusicDelay(string uid, string path, GameObject target, bool loop, AudioType format)
         {
             isLoading = true;
             ZLog.Log("audio manager try load music......path = " + path);
-            using (var www = UnityWebRequestMultimedia.GetAudioClip("file://" + path, AudioType.OGGVORBIS))
+            using (var www = UnityWebRequestMultimedia.GetAudioClip("file://" + path, format))
             {
                 yield return www.SendWebRequest();
                 isLoading = false;
@@ -337,6 +337,7 @@ namespace ZStart.Common.Manager
                 soundList[i].Stop();
                 soundList[i].clip = null;
             }
+            soundList.Clear();
         }
 
         public void Pause(GameObject target)
@@ -372,6 +373,14 @@ namespace ZStart.Common.Manager
             if (musicOn == ison) return;
             musicOn = ison;
             ChangeMusic(ison);
+        }
+
+        public void TurnSound(bool ison)
+        {
+            if (soundOn == ison)
+                return;
+            soundOn = ison;
+            
         }
     }
 }

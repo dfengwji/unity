@@ -62,7 +62,8 @@
         /// </summary>
         OnDownloadUpdate,
        
-        OnSceneChanged,
+        OnSceneLoaded,
+        OnSceneUnloaded,
 
         OnGuideComplete,
 
