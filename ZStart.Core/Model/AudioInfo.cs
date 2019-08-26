@@ -9,6 +9,6 @@ namespace ZStart.Core.Model
         public string assetPath;
         public bool isLoop;
         public float time;
-        public int bundle;
+        public uint bundle;
     }
 }

@@ -1,7 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Networking;
 using ZStart.Core.Enum;
 using ZStart.Core.Manager;
 using ZStart.Core.Model;
@@ -18,21 +20,29 @@ namespace ZStart.Core.Controller
     [System.Serializable]
     public class BundleLoadInfo
     {
-        public int id;
+        public uint id;
         public string path = "";
+        public string downURL = "";
         public BundleType type = BundleType.Unknow;
-        public bool isWeb = false;
         public UnityAction<string, bool> completeFun;
         public BundleLoadInfo(string path, BundleType kind)
         {
             this.path = path;
             type = kind;
         }
+
+        public bool IsWeb
+        {
+            get
+            {
+                return string.IsNullOrEmpty(downURL) ? false : true;
+            }
+        }
     }
 
     public class ZBundleController : ZSingletonBehaviour<ZBundleController>
     {
-        public List<BundleLoadInfo> loadInfoList;
+        public List<BundleLoadInfo> requestList;
         public BundleLoadState state = BundleLoadState.Failure;
         public int loadIndex = 0;
         public string[] activeVariants = { };
@@ -51,7 +61,7 @@ namespace ZStart.Core.Controller
         protected override void Awake()
         {
             base.Awake();
-            loadInfoList = new List<BundleLoadInfo>();
+            requestList = new List<BundleLoadInfo>();
         }
 
         public static string GetStreamingAssetsPath()
@@ -66,34 +76,37 @@ namespace ZStart.Core.Controller
                 return "file://" + Application.streamingAssetsPath;
         }
 
-        public void LoadByURL(string url, BundleType type, UnityAction<string, bool> complete = null)
+        public void Load(string url,string savePath, BundleType type, UnityAction<string, bool> complete = null)
         {
-            if (!HasLoadInfo(url))
+            if (string.IsNullOrEmpty(savePath))
+                return;
+            if (!HasLoadInfo(savePath))
             {
-                BundleLoadInfo info = new BundleLoadInfo(url, type)
+                BundleLoadInfo info = new BundleLoadInfo(savePath, type)
                 {
-                    isWeb = true,
-                    completeFun = complete
+                    completeFun = complete,
+                    downURL = url
                 };
-                loadInfoList.Add(info);
+                requestList.Add(info);
             }
-            totalLength = loadInfoList.Count;
+            totalLength = requestList.Count;
             if (state != BundleLoadState.InProgress)
                 LoadNext();
         }
 
-        public void LoadByPath(string path, BundleType type,UnityAction<string,bool> complete = null)
+        public void Load(string path, BundleType type,UnityAction<string,bool> complete = null)
         {
+            if (string.IsNullOrEmpty(path))
+                return;
             if (!HasLoadInfo(path))
             {
                 BundleLoadInfo info = new BundleLoadInfo(path, type)
                 {
-                    isWeb = false,
                     completeFun = complete
                 };
-                loadInfoList.Add(info);
+                requestList.Add(info);
             }
-            totalLength = loadInfoList.Count;
+            totalLength = requestList.Count;
             if (state != BundleLoadState.InProgress)
                 LoadNext();
         }
@@ -143,37 +156,39 @@ namespace ZStart.Core.Controller
        
         public void LoadBundles(BundleInfo[] list)
         {
-            if (state == BundleLoadState.InProgress)
+            if (state == BundleLoadState.InProgress || list == null)
                 return;
-            ZLog.Log("LoadBundles ..................");
+            ZLog.Log("LoadBundles ..................num = " + list.Length);
             state = BundleLoadState.Failure;
             loadIndex = 0;
-            loadInfoList.Clear();
+            requestList.Clear();
             for (int i = 0; i < list.Length; i++)
             {
                 BundleInfo model = list[i];
-                if (!HasLoadInfo(model.url))
+                if (!HasLoadInfo(model.path))
                 {
-                    BundleLoadInfo info = new BundleLoadInfo(model.url, model.type);
-                    info.id = model.id;
-                    info.isWeb = true;
-                    loadInfoList.Add(info);
+                    BundleLoadInfo info = new BundleLoadInfo(model.path, model.type)
+                    {
+                        id = model.id,
+                        downURL = model.url
+                    };
+                    requestList.Add(info);
                 }
             }
-            totalLength = loadInfoList.Count;
+            totalLength = requestList.Count;
             LoadNext();
         }
 
         void LoadNext()
         {
-            if (loadInfoList.Count < 1)
+            if (requestList.Count < 1)
             {
                 state = BundleLoadState.Success;
                 totalLength = 0;
                 loadIndex = 0;
                 return;
             }
-            BundleLoadInfo info = loadInfoList[0];
+            BundleLoadInfo info = requestList[0];
             loadIndex++;
             state = BundleLoadState.InProgress;
             if (ZBundleManager.Instance.HasBundle(info.path))
@@ -185,15 +200,15 @@ namespace ZStart.Core.Controller
             }
             else
             {
-                if(info.isWeb)
-                    StartCoroutine(LoadWWWInspector(info));
+                if(info.IsWeb)
+                    StartCoroutine(LoadRemoteInspector(info));
                 else
-                    StartCoroutine(LoadFileInspector(info));
+                    StartCoroutine(LoadLocalInspector(info));
             }
                 
         }
 
-        IEnumerator LoadFileInspector(BundleLoadInfo info)
+        IEnumerator LoadLocalInspector(BundleLoadInfo info)
         {
             AssetBundleCreateRequest request = AssetBundle.LoadFromFileAsync(info.path);
             yield return request;
@@ -211,44 +226,71 @@ namespace ZStart.Core.Controller
             LoadNext();
         }
 
-        IEnumerator LoadWWWInspector(BundleLoadInfo info)
+        IEnumerator LoadRemoteInspector(BundleLoadInfo info)
         {
-            while (!Caching.ready)
-                yield return null;
-            using (WWW www = WWW.LoadFromCacheOrDownload(info.path, 1))
+            string dir = Path.GetDirectoryName(info.path);
+            if (Directory.Exists(dir) == false)
             {
-                yield return www;
-                if (www.isDone)
+                Directory.CreateDirectory(dir);
+            }
+            if (File.Exists(info.path))
+                File.Delete(info.path);
+            yield return null;
+            UnityWebRequest downloader = UnityWebRequest.Get(info.downURL);
+            downloader.disposeDownloadHandlerOnDispose = true;
+            downloader.downloadHandler = new DownloadHandlerFile(info.path);
+            downloader.SendWebRequest();
+            while (!downloader.isDone)
+            {
+                yield return null;
+            }
+            if (!string.IsNullOrEmpty(downloader.error) || downloader.isNetworkError || downloader.isHttpError)
+            {
+                ZLog.Warning("download asset bundle file failed!!!!" + downloader.error + "; url = " + info.downURL);
+                if (info.completeFun != null)
                 {
-                    if (!string.IsNullOrEmpty(www.error))
-                    {
-                        Debug.LogError("WWW download:" + www.error + " that url = " + info.path);
-                        state = BundleLoadState.Failure;
-                        if (info.completeFun != null)
-                            info.completeFun.Invoke(info.path, false);
-                        yield break;
-                    }
-                    else
-                    {
-                        ZBundleManager.Instance.AddBundle(info.id, info.path, 1, info.type, www.assetBundle);
-                        if (info.completeFun != null)
-                            info.completeFun.Invoke(info.path, true);
-                    }
-                    RemoveLoadInfo(info.path);
-                    www.Dispose();
-                    LoadNext();
+                    info.completeFun.Invoke(info.downURL, false);
+                }
+                downloader.Dispose();
+                downloader = null;
+            }
+            else
+            {
+                ZLog.Warning("download asset bundle success that url = " + info.downURL);
+                yield return null;
+                downloader.Abort();
+                downloader.Dispose();
+                downloader = null;
+                Resources.UnloadUnusedAssets();
+                yield return null;
+                if (info.completeFun != null)
+                {
+                    info.completeFun.Invoke(info.downURL, true);
+                }
+                AssetBundleCreateRequest request = AssetBundle.LoadFromFileAsync(info.path);
+                yield return request;
+                if (request.isDone)
+                {
+                    AssetBundle bundle = request.assetBundle;
+                    ZLog.Warning("read asset bundle success that path = " + info.path);
+                    if (bundle != null)
+                        ZBundleManager.Instance.AddBundle(info.path, info.type, bundle);
+                    if (info.completeFun != null)
+                        info.completeFun.Invoke(info.path, true);
                 }
             }
+            RemoveLoadInfo(info.path);
+            LoadNext();
         }
 
         private void RemoveLoadInfo(string address)
         {
-            for (int i = 0; i < loadInfoList.Count; i++)
+            for (int i = 0; i < requestList.Count; i++)
             {
-                BundleLoadInfo mode = loadInfoList[i];
-                if (mode.path.Equals(address))
+                BundleLoadInfo mode = requestList[i];
+                if (mode.path == address)
                 {
-                    loadInfoList.RemoveAt(i);
+                    requestList.RemoveAt(i);
                     break;
                 }
             }
@@ -256,7 +298,7 @@ namespace ZStart.Core.Controller
 
         private BundleLoadInfo GetLoadILnfo(string address)
         {
-            foreach (BundleLoadInfo mode in loadInfoList)
+            foreach (BundleLoadInfo mode in requestList)
             {
                 if (mode.path.Equals(address))
                     return mode;
@@ -268,10 +310,10 @@ namespace ZStart.Core.Controller
         {
             if (string.IsNullOrEmpty(address))
                 return false;
-            for (int i = 0; i < loadInfoList.Count; i++)
+            for (int i = 0; i < requestList.Count; i++)
             {
-                BundleLoadInfo mode = loadInfoList[i];
-                if (mode.path.Equals(address))
+                BundleLoadInfo mode = requestList[i];
+                if (mode.path == address)
                     return true;
             }
             return false;

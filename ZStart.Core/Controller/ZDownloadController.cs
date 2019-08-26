@@ -299,7 +299,6 @@ namespace ZStart.Core.Controller
             else
             {
                 // Or retrieve results as binary data
-                //FileCacheManager.Instance.WriteFile(info.path, downloader.downloadHandler.data);
                 yield return null;
                 
                 if (!string.IsNullOrEmpty(info.md5))

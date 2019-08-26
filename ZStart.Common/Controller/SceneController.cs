@@ -256,7 +256,7 @@ namespace ZStart.Common.Controller
                     TryLoad(bundle, mode);
                 }
                 else
-                    ZBundleController.Instance.LoadByPath(path, Core.Enum.BundleType.Scene, BundleCompleteHandle);
+                    ZBundleController.Instance.Load(path, Core.Enum.BundleType.Scene, BundleCompleteHandle);
             }
         }
 

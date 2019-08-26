@@ -88,9 +88,17 @@ namespace ZStart.Common.Controller
             return _alertWindow as T;
         }
 
+        public AppWindow GetOpenedWindow()
+        {
+            if (_alertWindow == null)
+                return null;
+            return _alertWindow;
+        }
+
         public T ShowWindow<T>(UIParamInfo info, bool effect, bool mask) where T : AppWindow
         {
-            overlayMask.SetActive(mask);
+            if(overlayMask != null)
+                overlayMask.SetActive(mask);
             T clone = ZAssetController.Instance.ActivateAsset<T>(windowBox);
             _alertWindow = clone;
             openedWindow = typeof(T).Name;
@@ -110,7 +118,8 @@ namespace ZStart.Common.Controller
 
         public T ShowNow<T>(UIParamInfo info, bool effect, bool mask) where T : AppWindow
         {
-            overlayMask.SetActive(mask);
+            if(overlayMask != null)
+                overlayMask.SetActive(mask);
             if (_alertWindow != null && typeof(T) == _alertWindow.GetType())
                 return _alertWindow as T;
 
@@ -137,7 +146,8 @@ namespace ZStart.Common.Controller
 
         public void CloseWindow()
         {
-            overlayMask.SetActive(false);
+            if(overlayMask != null)
+                overlayMask.SetActive(false);
             openedWindow = "";
             if (_alertWindow != null)
             {
@@ -168,10 +178,17 @@ namespace ZStart.Common.Controller
         IEnumerator ShowInspector(AppWindow window, UIParamInfo info)
         {
             isTween = true;
-            mShowVfx.gameObject.SetActive(true);
-            mCloseVfx.gameObject.SetActive(false);
-            mShowVfx.Play();
-            mCloseVfx.Stop();
+            if(mShowVfx != null)
+            {
+                mShowVfx.gameObject.SetActive(true);
+                mShowVfx.Play();
+            }
+            if (mCloseVfx != null)
+            {
+                mCloseVfx.Stop();
+                mCloseVfx.gameObject.SetActive(false);
+            }
+            
             window.AddListeners();
             yield return new WaitForSeconds(openDelay);
             window.Appear(info);
@@ -181,10 +198,17 @@ namespace ZStart.Common.Controller
         IEnumerator HideInspector()
         {
             isTween = true;
-            mShowVfx.gameObject.SetActive(false);
-            mCloseVfx.gameObject.SetActive(true);
-            mCloseVfx.Play();
-            mShowVfx.Stop();
+            if (mShowVfx != null)
+            {
+                mShowVfx.Stop();
+                mShowVfx.gameObject.SetActive(false);
+            }
+            if (mCloseVfx != null)
+            {
+                mCloseVfx.gameObject.SetActive(true);
+                mCloseVfx.Play();
+            }
+           
             _alertWindow.RemoveListeners();
             _alertWindow.Clear();
             _alertWindow.Disappear();
@@ -349,6 +373,11 @@ namespace ZStart.Common.Controller
             {
                 return AlertController.Instance.hasOpenedWindow;
             }
+        }
+
+        public static AppWindow GetOpenedWindow()
+        {
+            return AlertController.Instance.GetOpenedWindow();
         }
 
         public static bool IsOpend<T>() where T : AppWindow

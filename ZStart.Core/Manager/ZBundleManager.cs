@@ -25,7 +25,7 @@ namespace ZStart.Core.Manager
             }
         }
 
-        public void AddBundle(int id,string url, uint version, BundleType type, AssetBundle bundle)
+        public void AddBundle(uint id,string url, uint version, BundleType type, AssetBundle bundle)
         {
             if (HasBundle(id))
             {
@@ -45,10 +45,12 @@ namespace ZStart.Core.Manager
                 ZLog.Warning("add bundle failed!!!that had same bundle uid = "+uid);
                 return;
             }
-            BundleModel model = new BundleModel();
-            model.UID = uid;
-            model.type = type;
-            model.bundle = bundle;
+            BundleModel model = new BundleModel
+            {
+                UID = uid,
+                type = type,
+                bundle = bundle
+            };
             bundleList.Add(model);
         }
 
@@ -62,7 +64,7 @@ namespace ZStart.Core.Manager
             return false;
         }
 
-        public bool HasBundle(int id)
+        public bool HasBundle(uint id)
         {
             for (int i = 0; i < bundleList.Count; i++)
             {
@@ -107,7 +109,7 @@ namespace ZStart.Core.Manager
             return null;
         }
 
-        public AssetBundle GetBundle(int id)
+        public AssetBundle GetBundle(uint id)
         {
             for (int i = 0; i < bundleList.Count; i++)
             {
@@ -142,12 +144,38 @@ namespace ZStart.Core.Manager
             return null;
         }
 
+        public AssetBundleRequest GetAssetAsync<T>(uint id, string assetName) where T : Object
+        {
+            for (int i = 0, max = bundleList.Count; i < max; i++)
+            {
+                BundleModel info = bundleList[i];
+                if (info.ID == id)
+                {
+                    return info.bundle.LoadAssetAsync<T>(assetName);
+                }
+            }
+            return null;
+        }
+
         public T GetAsset<T>(string uid, string assetName) where T : Object
         {
             for (int i = 0, max = bundleList.Count; i < max; i++)
             {
                 BundleModel info = bundleList[i];
                 if (info.UID == uid)
+                {
+                    return info.bundle.LoadAsset<T>(assetName);
+                }
+            }
+            return null;
+        }
+
+        public T GetAsset<T>(uint id, string assetName) where T : Object
+        {
+            for (int i = 0, max = bundleList.Count; i < max; i++)
+            {
+                BundleModel info = bundleList[i];
+                if (info.ID == id)
                 {
                     return info.bundle.LoadAsset<T>(assetName);
                 }
@@ -191,7 +219,7 @@ namespace ZStart.Core.Manager
             }
         }
 
-        public void RemoveBundle(int id)
+        public void RemoveBundle(uint id)
         {
             for (int i = 0; i < bundleList.Count; i++)
             {
@@ -221,7 +249,7 @@ namespace ZStart.Core.Manager
             }
         }
 
-        public void UnloadBundle(int id,bool allObj)
+        public void UnloadBundle(uint id,bool allObj)
         {
             for (int i = 0; i < bundleList.Count; i++)
             {

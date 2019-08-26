@@ -30,7 +30,7 @@ namespace ZStart.Core.Controller
 
     public struct PoolImageInfo<T> 
     {
-        public int bundle;
+        public uint bundle;
         public string path;
         public T image;
     }
@@ -153,7 +153,7 @@ namespace ZStart.Core.Controller
             complete?.Invoke();
         }
 
-        public AudioClip GetAudioClip(int bundle, string path)
+        public AudioClip GetAudioClip(uint bundle, string path)
         {
             try
             {
@@ -219,7 +219,7 @@ namespace ZStart.Core.Controller
             }
         }
 
-        public Texture2D GetTexture2D(int assetid)
+        public Texture2D GetTexture2D(uint assetid)
         {
             AssetVarietyInfo info = GetVarietyInfo(assetid);
             if (info.id < 1)
@@ -230,7 +230,7 @@ namespace ZStart.Core.Controller
             return GetTexture2D(info.spriteBundle, info.spriteName, info.spriteType.ToString().ToLower());
         }
 
-        public Texture2D GetTexture2D(int bundle,string path,string suffix)
+        public Texture2D GetTexture2D(uint bundle,string path,string suffix)
         {
             if (string.IsNullOrEmpty(path)) return null;
             try
@@ -271,7 +271,7 @@ namespace ZStart.Core.Controller
             }
         }
 
-        public Sprite GetSprite(int assetid)
+        public Sprite GetSprite(uint assetid)
         {
             AssetVarietyInfo info = GetVarietyInfo(assetid);
             if(info.id < 1)
@@ -287,7 +287,7 @@ namespace ZStart.Core.Controller
             return GetSprite(0,path,type.ToString().ToLower());
         }
 
-        public Sprite GetSprite(int bundle, string path,string suffix)
+        public Sprite GetSprite(uint bundle, string path,string suffix)
         {
             if (string.IsNullOrEmpty(path)) return null;
             try
@@ -305,7 +305,7 @@ namespace ZStart.Core.Controller
                 if (sprite == null)
                 {
                     if(bundle > 0)
-                        sprite = LoadResource<Sprite>(bundle,path, suffix);
+                        sprite = LoadResource<Sprite>(bundle, path, suffix);
                     else
                         sprite = LoadResource<Sprite>(path, suffix, BundleType.Sprite);
                     if (sprite == null)
@@ -380,7 +380,7 @@ namespace ZStart.Core.Controller
             return null;
         }
 
-        private T GetPrefab<T>(int bundle, string path, BundleType type) where T:Component
+        private T GetPrefab<T>(uint bundle, string path, BundleType type) where T:Component
         {
             if (string.IsNullOrEmpty(path)) return null;
             try
@@ -674,7 +674,7 @@ namespace ZStart.Core.Controller
             return prop;
         }
 
-        private AssetVarietyInfo GetVarietyInfo(int id)
+        private AssetVarietyInfo GetVarietyInfo(uint id)
         {
             if (varityAssets == null)
                 return new AssetVarietyInfo();
@@ -686,7 +686,7 @@ namespace ZStart.Core.Controller
             return new AssetVarietyInfo();
         }
 
-        public T ActivateAsset<T>(int assetid, Transform parent) where T : MonoBehaviour
+        public T ActivateAsset<T>(uint assetid, Transform parent) where T : MonoBehaviour
         {
             AssetVarietyInfo info = GetVarietyInfo(assetid);
             if(info.id < 1)
@@ -732,7 +732,7 @@ namespace ZStart.Core.Controller
             return prop;
         }
 
-        private T ActivateAsset<T>(string path,int bundle, Transform parent) where T : MonoBehaviour
+        private T ActivateAsset<T>(string path,uint bundle, Transform parent) where T : MonoBehaviour
         {
             T prop = GetSleepAsset<T>(path);
             if (prop == null)
@@ -980,7 +980,7 @@ namespace ZStart.Core.Controller
             return prefab;
         }
 
-        private T LoadResource<T>(int bundle,string path,string suffix) where T : UnityEngine.Object
+        private T LoadResource<T>(uint bundle,string path,string suffix) where T : UnityEngine.Object
         {
             T prefab = null;
             prefab = GetObjectFromBundle<T>(bundle, path, suffix, false);
@@ -1008,7 +1008,7 @@ namespace ZStart.Core.Controller
             return prefab;
         }
 
-        private T GetObjectFromBundle<T>(int bundleID, string assetName,string suffix, bool isUnload) where T : UnityEngine.Object
+        private T GetObjectFromBundle<T>(uint bundleID, string assetName,string suffix, bool isUnload) where T : UnityEngine.Object
         {
             T bundleObj = null;
             AssetBundle bundle = ZBundleManager.Instance.GetBundle(bundleID);

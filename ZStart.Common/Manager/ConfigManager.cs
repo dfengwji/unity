@@ -243,10 +243,10 @@ namespace ZStart.Common.Manager
                     {
                         name = node.GetAttribute("name"),
                         type = (AssetType)int.Parse(node.GetAttribute("type")),
-                        bundle = int.Parse(node.GetAttribute("bundle")),
+                        bundle = uint.Parse(node.GetAttribute("bundle")),
                         preInstant = int.Parse(node.GetAttribute("instant")),
                         asset = node.GetAttribute("path"),
-                        audio = int.Parse(node.GetAttribute("music")),
+                        audio = uint.Parse(node.GetAttribute("music")),
                         grade = int.Parse(node.GetAttribute("grade"))
                     };
                     infoList.Add(model);

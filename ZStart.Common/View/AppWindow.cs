@@ -12,6 +12,13 @@ namespace ZStart.Common.View
 
         [SerializeField]
         protected UIParamInfo paramInfo;
+        public UIParamInfo UIParam
+        {
+            get
+            {
+                return paramInfo;
+            }
+        }
         private bool isStarted = false;
         public bool IsStarted
         {

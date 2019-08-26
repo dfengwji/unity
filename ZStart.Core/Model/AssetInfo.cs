@@ -7,8 +7,8 @@ namespace ZStart.Core.Model
         public string name;
         public AssetType type;
         public string asset;
-        public int audio;
-        public int bundle;
+        public uint audio;
+        public uint bundle;
         public int preInstant;
         public int grade;
     }
@@ -16,11 +16,11 @@ namespace ZStart.Core.Model
     [System.Serializable]
     public struct AssetVarietyInfo
     {
-        public int id;
+        public uint id;
         public string prefabName;
-        public int prefabBundle;
+        public uint prefabBundle;
         public string spriteName;
-        public int spriteBundle;
+        public uint spriteBundle;
         public SpriteFormatType spriteType;
     }
 }

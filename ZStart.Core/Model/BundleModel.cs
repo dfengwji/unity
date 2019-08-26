@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.Events;
 using ZStart.Core.Enum;
 namespace ZStart.Core.Model
 {
@@ -39,15 +38,16 @@ namespace ZStart.Core.Model
         }
     }
 
-    [System.Serializable]
     public struct BundleInfo
     {
         public BundleType type;
         public string url;
+        public string path;
         public uint version;
-        public int id;
+        public uint id;
         public int size;
         public string name;
         public uint crc;
+        public string md5;
     }
 }
