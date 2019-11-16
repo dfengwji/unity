@@ -112,10 +112,19 @@ namespace ZStart.Common.Manager
             {
                 if (File.Exists(path))
                 {
+                    if (CallbackController.Instance == null)
+                    {
+                        ZLog.Error("must attach the script of CallbackController");
+                        return;
+                    }
                     if (loadCoroutine != null)
                         CallbackController.Instance.StopCoroutine(loadCoroutine);
                     loadCoroutine = CallbackController.Instance.StartCoroutine(PlaySoundDelay(uid, path, target, format));
-                 }
+                }
+                else
+                {
+                    ZLog.Error("the file not existed");
+                }
             }
             PlaySound(clip, target);
         }
@@ -244,9 +253,18 @@ namespace ZStart.Common.Manager
                 {
                     //Debug.LogError("time read file start:" + Time.realtimeSinceStartup);
                     //new Thread(() => ReadFile(uid, path, target, loop)).Start();
+                    if (CallbackController.Instance == null)
+                    {
+                        ZLog.Error("must attach the script of CallbackController");
+                        return;
+                    }
                     if (loadCoroutine != null)
                         CallbackController.Instance.StopCoroutine(loadCoroutine);
                     loadCoroutine = CallbackController.Instance.StartCoroutine(PlayMusicDelay(uid, path, target, loop, format));
+                }
+                else
+                {
+                    ZLog.Error("the file not existed");
                 }
             }
             else

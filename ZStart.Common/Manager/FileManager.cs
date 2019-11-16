@@ -37,7 +37,7 @@ namespace ZStart.Common.Manager
         private readonly string anyImageDirectory;
         private readonly string imageDirectory;
         private readonly string winExeDirectory;
-        private readonly string itvDirectory;
+        private readonly string otherDirectory;
         private FileManager()
         {
             logoDirectory = Path.Combine(Application.persistentDataPath, "Logos");
@@ -60,7 +60,7 @@ namespace ZStart.Common.Manager
                 imageDirectory = "/" + rootDirectory + "/Images/Android";
                 anyImageDirectory = "/" + rootDirectory + "/Images/Any";
                 winImageDirectory = "/" + rootDirectory + "/Images/Win32";
-                itvDirectory = "/" + rootDirectory + "/ITVs";
+                otherDirectory = "/" + rootDirectory + "/Others";
             }
             else
             {
@@ -79,7 +79,7 @@ namespace ZStart.Common.Manager
                 winImageDirectory = Path.Combine(rootDirectory, "Images/Win32");
                 anyImageDirectory = Path.Combine(rootDirectory, "Images/Any");
                 winExeDirectory = Path.Combine(rootDirectory, "EXEs");
-                itvDirectory = Path.Combine(rootDirectory, "ITVs");
+                otherDirectory = Path.Combine(rootDirectory, "Others");
             }
             Debug.Log("certificatePath = " + certificatePath);
         }
@@ -140,11 +140,11 @@ namespace ZStart.Common.Manager
             }
         }
 
-        public static string ITVDirectory
+        public static string OtherDirectory
         {
             get
             {
-                return Instance.itvDirectory;
+                return Instance.otherDirectory;
             }
         }
 

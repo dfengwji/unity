@@ -96,7 +96,7 @@ namespace ZStart.Core.Controller
 
         public void Load(string path, BundleType type,UnityAction<string,bool> complete = null)
         {
-            if (string.IsNullOrEmpty(path))
+            if (string.IsNullOrEmpty(path) || !File.Exists(path))
                 return;
             if (!HasLoadInfo(path))
             {

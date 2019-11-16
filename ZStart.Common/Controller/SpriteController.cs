@@ -1,5 +1,6 @@
 ﻿using ZStart.Core;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace ZStart.Common.Controller
 {
@@ -7,31 +8,46 @@ namespace ZStart.Common.Controller
     public struct SpriteInfo
     {
         public int type;
-        public Sprite[] sprites;
+        public SpriteOneInfo[] sprites;
     }
+
+    [System.Serializable]
+    public struct SpriteOneInfo
+    {
+        public int id;
+        public Sprite sprite;
+    }
+
     public class SpriteController : ZSingletonBehaviour<SpriteController>
     {
-        public SpriteInfo[] spriteInfos;
+        public SpriteInfo[] infos;
 
-        public Sprite[] GetSprites(int type)
+        public List<Sprite> GetSprites(int type)
         {
-            for (int i = 0; i < spriteInfos.Length;i++ )
+            List<Sprite> list = new List<Sprite>(10);
+            for (int i = 0; i < infos.Length;i++ )
             {
-                if (spriteInfos[i].type == type)
-                    return spriteInfos[i].sprites;
+                if (infos[i].type == type)
+                {
+                    for (int j = 0;j < infos[i].sprites.Length;j++) {
+                        list.Add(infos[i].sprites[j].sprite);
+                    }
+                }
             }
-            return null;
+            return list;
         }
 
-        public Sprite GetSprite(int type,int index)
+        public Sprite GetSprite(int type,int id)
         {
-            for (int i = 0; i < spriteInfos.Length; i++)
+            for (int i = 0; i < infos.Length; i++)
             {
-                if (spriteInfos[i].type == type)
+                if (infos[i].type == type)
                 {
-                    Sprite[] sprites = spriteInfos[i].sprites;
-                    if (sprites != null && sprites.Length > index)
-                        return sprites[index];
+                    for (int j = 0; j < infos[i].sprites.Length; j++)
+                    {
+                        if (infos[i].sprites[j].id == id)
+                            return infos[i].sprites[j].sprite;
+                    }
                 }
             }
             return null;

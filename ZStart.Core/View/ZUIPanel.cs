@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using UnityEngine;
+﻿using UnityEngine;
 using ZStart.Core.Enum;
 using ZStart.Core.Model;
 namespace ZStart.Core.View
@@ -9,12 +8,12 @@ namespace ZStart.Core.View
         public RectTransform effectPoint;
        
         [SerializeField]
-        protected UIParamInfo windowInfo;
+        protected UIParamInfo paramInfo;
         public UIParamInfo Info
         {
             get
             {
-                return windowInfo;
+                return paramInfo;
             }
         }
 
@@ -97,7 +96,7 @@ namespace ZStart.Core.View
 
         public void Open(UIParamInfo info)
         {
-            windowInfo = info;
+            paramInfo = info;
             _isOpen = true;
             AddListeners();
             Appear();

@@ -23,7 +23,8 @@ namespace ZStart.Common.Controller
         private bool showLoad = false;
         public bool ShowLoading{
             set{
-                loadingObj.gameObject.SetActive(value);
+                if(loadingObj != null)
+                    loadingObj.gameObject.SetActive(value);
                 showLoad = value;
              
                 ShowScene(!value);
@@ -33,6 +34,19 @@ namespace ZStart.Common.Controller
                 return showLoad;
             }
         }
+
+        public float Progress
+        {
+            get
+            {
+                if (asyncOperation != null)
+                    return asyncOperation.progress;
+                else
+                    return -1f;
+            }
+        }
+
+        private AsyncOperation asyncOperation;
 
         protected override void Awake()
         {
@@ -92,9 +106,12 @@ namespace ZStart.Common.Controller
 
         private void AddOne(Scene scene)
         {
+            if (scene == null)
+                return;
             if (HadOne(scene.name))
                 return;
             GameObject[] array = scene.GetRootGameObjects();
+            bool had = false;
             for (int i = 0; i < array.Length; i += 1)
             {
                 var tmp = array[i].GetComponent<BaseScene>();
@@ -102,7 +119,17 @@ namespace ZStart.Common.Controller
                 {
                     tmp.uname = scene.name;
                     loadedScenes.Add(tmp);
+                    had = true;
                     break;
+                }
+            }
+            if (!had && array.Length > 0)
+            {
+                var tmp = array[0].AddComponent<DefaultScene>();
+                if(tmp != null)
+                {
+                    tmp.uname = scene.name;
+                    loadedScenes.Add(tmp);
                 }
             }
         }
@@ -157,77 +184,92 @@ namespace ZStart.Common.Controller
             }
         }
 
+        public void AllowActivation()
+        {
+            if (asyncOperation != null)
+            {
+                asyncOperation.allowSceneActivation = true;
+                asyncOperation = null;
+            }
+        }
+
+        private void Update()
+        {
+            if (asyncOperation != null)
+            {
+                if (loadingObj != null)
+                    loadingObj.Rotate(Vector3.back, Time.deltaTime * roateSpeed);
+            }
+        }
+
         IEnumerator InitInspector()
         {
             ShowLoading = true;
-            AsyncOperation async = SceneManager.LoadSceneAsync(defaultScene);
-            async.allowSceneActivation = false;
-            while (!async.isDone)
+            yield return new WaitForEndOfFrame();
+            asyncOperation = SceneManager.LoadSceneAsync(defaultScene);
+            asyncOperation.allowSceneActivation = false;
+            while (!asyncOperation.isDone)
             {
-                if (async.progress > 0.8999f)
+                if (asyncOperation.progress >0.899f)
                 {
-                    async.allowSceneActivation = true;
+                    asyncOperation.allowSceneActivation = true;
                 }
-                if (loadingObj != null)
-                    loadingObj.Rotate(Vector3.back, Time.deltaTime * roateSpeed);
                 yield return null;
             }
-            yield return null;
-          
             ShowLoading = false;
             ZLog.Log("SceneController... InitInspector.....complete");
-            Switch("");
+            //Switch("");
         }
 
-        IEnumerator LoadInspector(string scene,string flag, LoadSceneMode mode)
+        IEnumerator LoadInspector(string scene,string flag, LoadSceneMode mode, bool autoAct)
         {
-            ZLog.Log("SceneController...switch scene!!!!from = " + currentScene + " to " + scene + " and flag = " + flag);
+            ZLog.Log("SceneController...load scene!!!!from = " + currentScene + " to " + scene + " and flag = " + flag);
             if (currentScene == scene)
                 yield break;
-           
-            yield return new WaitForSeconds(0.5f);
-            RenderSettings.skybox = null;
             ShowLoading = true;
-            yield return new WaitForSeconds(0.1f);
-           
-            AsyncOperation async = SceneManager.LoadSceneAsync(scene, mode);
-            async.allowSceneActivation = false;
-            while (!async.isDone)
+            RenderSettings.skybox = null;
+            yield return new WaitForEndOfFrame();
+            asyncOperation = SceneManager.LoadSceneAsync(scene, mode);
+            asyncOperation.allowSceneActivation = false;
+            if (autoAct)
             {
-                if (async.progress > 0.8999f)
+                while (!asyncOperation.isDone)
                 {
-                    async.allowSceneActivation = true;
+                    if (asyncOperation.progress > 0.899f)
+                    {
+                        asyncOperation.allowSceneActivation = true;
+                    }
+                    yield return null;
                 }
-                if (loadingObj != null)
-                    loadingObj.Rotate(Vector3.back, Time.deltaTime * roateSpeed);
-                yield return null;
             }
-          
-            yield return null;
+            else
+            {
+                yield return asyncOperation;
+            }
+           
             ShowLoading = false;
         }
 
         IEnumerator UnLoadInspector(string scene)
         {
             ZLog.Log("SceneController...try unload scene that name = " + scene);
-            yield return new WaitForSeconds(0.2f);
-            RenderSettings.skybox = null;
             ShowLoading = true;
-            yield return new WaitForSeconds(0.1f);
-
-            AsyncOperation async = SceneManager.UnloadSceneAsync(scene);
-            async.allowSceneActivation = false;
-            while (!async.isDone)
-            {
-                if (loadingObj != null)
-                    loadingObj.Rotate(Vector3.back, Time.deltaTime * roateSpeed);
-                yield return null;
-            }
-
+            RenderSettings.skybox = null;
+            yield return new WaitForEndOfFrame();
+            asyncOperation = SceneManager.UnloadSceneAsync(scene);
+            asyncOperation.allowSceneActivation = false;
+            yield return asyncOperation;
+            //while (!async.isDone)
+            //{
+            //    progress = async.progress;
+            //    if (loadingObj != null)
+            //        loadingObj.Rotate(Vector3.back, Time.deltaTime * roateSpeed);
+            //    yield return null;
+            //}
             yield return null;
             ShowLoading = false;
         }
-
+        
         public void Init()
         {
             StartCoroutine(InitInspector());
@@ -240,37 +282,37 @@ namespace ZStart.Common.Controller
             StartCoroutine(UnLoadInspector(uname));
         }
 
-        public void Switch(string path, LoadSceneMode mode = LoadSceneMode.Single)
+        public void Switch(string path, LoadSceneMode mode = LoadSceneMode.Single, bool act = false)
         {
             ZLog.Log("SceneController...try switch scene = " + path);
            
             if (string.IsNullOrEmpty(path))
             {
-                StartCoroutine(LoadInspector(defaultScene,"", mode));
+                StartCoroutine(LoadInspector(defaultScene,"", mode, act));
             }
             else
             {
                 AssetBundle bundle = ZBundleManager.Instance.GetBundle(path);
                 if (bundle != null)
                 {
-                    TryLoad(bundle, mode);
+                    TryLoad(bundle, mode, act);
                 }
                 else
                     ZBundleController.Instance.Load(path, Core.Enum.BundleType.Scene, BundleCompleteHandle);
             }
         }
 
-        public void Load(string stage, LoadSceneMode mode = LoadSceneMode.Single)
+        public void Load(string stage, LoadSceneMode mode = LoadSceneMode.Single, bool act = false)
         {
             ZLog.Log("SceneController...try load scene = " + stage);
            
             if (string.IsNullOrEmpty(stage))
             {
-                StartCoroutine(LoadInspector(defaultScene, "", mode));
+                StartCoroutine(LoadInspector(defaultScene, "", mode, act));
             }
             else
             {
-                StartCoroutine(LoadInspector(stage, "", mode));
+                StartCoroutine(LoadInspector(stage, "", mode, act));
             }
         }
 
@@ -282,7 +324,7 @@ namespace ZStart.Common.Controller
                 if (bundle == null || bundle.GetAllScenePaths() == null || bundle.GetAllScenePaths().Length < 1)
                     return;
                 ShowLoading = true;
-                TryLoad(bundle, LoadSceneMode.Additive);
+                TryLoad(bundle, LoadSceneMode.Additive, true);
             }
             else
             {
@@ -290,13 +332,13 @@ namespace ZStart.Common.Controller
             }
         }
 
-        private void TryLoad(AssetBundle bundle, LoadSceneMode mode)
+        private void TryLoad(AssetBundle bundle, LoadSceneMode mode, bool act)
         {
             string scenePath = bundle.GetAllScenePaths()[0];
             string[] array = scenePath.Split('/');
             string scene = array[array.Length - 1].Replace(".unity", "");
             ZLog.Log("SceneController...load scene inspector....scene = " + scene);
-            StartCoroutine(LoadInspector(scene, "", mode));
+            StartCoroutine(LoadInspector(scene, "", mode, act));
         }
     }
 }

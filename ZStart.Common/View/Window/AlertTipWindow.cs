@@ -11,8 +11,8 @@ namespace ZStart.Common.View.Window
     {
         public enum ButtonType
         {
-            Cancel,
-            Sure
+            Left,
+            Right
         }
 
         public enum IconType
@@ -36,10 +36,8 @@ namespace ZStart.Common.View.Window
         protected override void Start()
         {
             base.Start();
-            rightButton.onClick.AddListener(ClickSureHandler);
-            leftButton.onClick.AddListener(ClickCancelHandler);
-            rightButton.UpdateLabel(LocalManager.GetValue("Button.Sure.Tip"));
-            leftButton.UpdateLabel(LocalManager.GetValue("Button.Cancel.Tip"));
+            rightButton.onClick.AddListener(ClickRightHandler);
+            leftButton.onClick.AddListener(ClickLeftHandler);
         }
 
         public override void Appear(UIParamInfo info)
@@ -47,7 +45,7 @@ namespace ZStart.Common.View.Window
             base.Appear(info);
         }
 
-        public void UpdateInfo(IconType type, string title, string content = "")
+        public void UpdateInfo(IconType type, string title, string content = "", string left = "", string right = "")
         {
             //switch (type)
             //{
@@ -61,14 +59,21 @@ namespace ZStart.Common.View.Window
             //        iconImage.overrideSprite = mIconList[(int)type];
             //        break;
             //}
-           
-            titleLabel.text = title;
-            tipLabel.text = content;
+            UpdateInfo(title, content, left, right);
         }
 
-        public void UpdateButtons()
+        public void UpdateInfo(string title, string content, string left = "", string right = "")
         {
-
+            if (!string.IsNullOrEmpty(left))
+                leftButton.UpdateLabel(left);
+            else
+                leftButton.UpdateLabel(LocalManager.GetValue("Button.Cancel.Tip"));
+            if (!string.IsNullOrEmpty(right))
+                rightButton.UpdateLabel(right);
+            else
+                rightButton.UpdateLabel(LocalManager.GetValue("Button.Sure.Tip"));
+            titleLabel.text = title;
+            tipLabel.text = content;
         }
 
         public void AddLinstener(UnityAction<ButtonType, UIParamInfo> callFun)
@@ -76,19 +81,19 @@ namespace ZStart.Common.View.Window
             clickFun = callFun;
         }
 
-        private void ClickSureHandler()
+        private void ClickRightHandler()
         {
             if (clickFun != null)
             {
-                clickFun.Invoke(ButtonType.Sure,paramInfo);
+                clickFun.Invoke(ButtonType.Right,paramInfo);
             }
         }
 
-        private void ClickCancelHandler()
+        private void ClickLeftHandler()
         {
             if (clickFun != null)
             {
-                clickFun.Invoke(ButtonType.Cancel, paramInfo);
+                clickFun.Invoke(ButtonType.Left, paramInfo);
             }
         }
 

@@ -10,7 +10,6 @@ namespace ZStart.Common.View.Widget
     {
         public Text label;
         public Animator animat;
-        private float distance = 0.5f;
         public bool isHover = false;
         private Vector3 initPos = Vector3.zero;
         private UnityAction<AnimatorButton> clickFun;
