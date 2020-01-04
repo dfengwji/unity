@@ -119,7 +119,7 @@ namespace ZStart.Common.Manager
                     }
                     if (loadCoroutine != null)
                         CallbackController.Instance.StopCoroutine(loadCoroutine);
-                    loadCoroutine = CallbackController.Instance.StartCoroutine(PlaySoundDelay(uid, path, target, format));
+                    loadCoroutine = CallbackController.Instance.StartCoroutine(LoadAndPlayDelay(uid, path, target,false,true, format));
                 }
                 else
                 {
@@ -129,40 +129,6 @@ namespace ZStart.Common.Manager
             PlaySound(clip, target);
         }
         
-        private IEnumerator PlaySoundDelay(string uid, string path, GameObject target, AudioType format)
-        {
-            isLoading = true;
-            ZLog.Log("audio manager try load sound......path = " + path);
-            using (var www = UnityWebRequestMultimedia.GetAudioClip("file://" + path, format))
-            {
-                yield return www.SendWebRequest();
-                isLoading = false;
-                if (www.isNetworkError)
-                {
-                    ZLog.Warning("load the aidio error!!!that msg = " + www.error);
-                    NotifyManager.SendNotify(NotifyType.OnAudioLoadError, path);
-                    yield break;
-                }
-                AudioClip clip = DownloadHandlerAudioClip.GetContent(www);
-                if (clip.length < 1)
-                {
-                    ZLog.Warning("load the music is empty!!!that path = " + path);
-                    NotifyManager.SendNotify(NotifyType.OnAudioLoadError, path);
-                    yield break;
-                }
-                AudioInfo audioInfo = new AudioInfo
-                {
-                    uid = uid,
-                    clip = clip
-                };
-                clips.Add(audioInfo);
-                PlaySound(clip, target);
-                NotifyManager.SendNotify(NotifyType.OnAudioPlay, path);
-            }
-
-            loadCoroutine = null;
-        }
-
         public void PlaySound(AudioClip clip, GameObject target)
         {
             if (clip == null || target.activeInHierarchy == false)
@@ -260,7 +226,7 @@ namespace ZStart.Common.Manager
                     }
                     if (loadCoroutine != null)
                         CallbackController.Instance.StopCoroutine(loadCoroutine);
-                    loadCoroutine = CallbackController.Instance.StartCoroutine(PlayMusicDelay(uid, path, target, loop, format));
+                    loadCoroutine = CallbackController.Instance.StartCoroutine(LoadAndPlayDelay(uid, path, target, loop, false, format));
                 }
                 else
                 {
@@ -274,34 +240,49 @@ namespace ZStart.Common.Manager
             }
         }
 
-        private IEnumerator PlayMusicDelay(string uid, string path, GameObject target, bool loop, AudioType format)
+        private IEnumerator LoadAndPlayDelay(string uid, string path, GameObject target, bool loop,bool isSound, AudioType format)
         {
             isLoading = true;
-            ZLog.Log("audio manager try load music......path = " + path);
-            using (var www = UnityWebRequestMultimedia.GetAudioClip("file://" + path, format))
+            ZLog.Log("audio manager try load data that path = " + path);
+            using (var loader = UnityWebRequestMultimedia.GetAudioClip("file://" + path, format))
             {
-                yield return www.SendWebRequest();
+                yield return loader.SendWebRequest();
                 isLoading = false;
-                if (www.isNetworkError)
+                if (loader.isNetworkError)
                 {
-                    ZLog.Warning("load the aidio error!!!that msg = " + www.error);
+                    ZLog.Warning("load the aidio error that msg = " + loader.error);
                     NotifyManager.SendNotify(NotifyType.OnAudioLoadError, path);
                     yield break;
                 }
-                AudioClip clip = DownloadHandlerAudioClip.GetContent(www);
+                AudioClip clip = null;
+                if((Application.platform == RuntimePlatform.WindowsPlayer || Application.platform == RuntimePlatform.WindowsEditor) && format == AudioType.MPEG)
+                {
+                    clip = AudioUtil.FromMp3Data(loader.downloadHandler.data);
+                }
+                else
+                {
+                    clip = DownloadHandlerAudioClip.GetContent(loader);
+                }
                 if (clip.length < 1)
                 {
-                    ZLog.Warning("load the music is empty!!!that path = " + path);
+                    ZLog.Warning("load the audio is empty that path = " + path);
                     NotifyManager.SendNotify(NotifyType.OnAudioLoadError, path);
                     yield break;
                 }
-                AudioInfo audioInfo = new AudioInfo
+                AudioInfo info = new AudioInfo
                 {
                     uid = uid,
                     clip = clip
                 };
-                clips.Add(audioInfo);
-                ActiveMusic(clip, target, loop);
+                clips.Add(info);
+                if (isSound)
+                {
+                    PlaySound(clip, target);
+                }
+                else
+                {
+                    ActiveMusic(clip, target, loop);
+                }
                 NotifyManager.SendNotify(NotifyType.OnAudioPlay, path);
             }
 

@@ -53,19 +53,22 @@ namespace ZStart.Core.View
             }
         }
 
-        public void WakenUp()
+        public void WakenUp(Transform parent)
         {
             gameObject.SetActive(true);
-            mTransform.localScale = Vector3.one;
-            mTransform.localPosition = Vector3.zero;
-            mTransform.localRotation = Quaternion.identity;
+            SetParent(parent);
+            UpdateDepth(PanelDepthType.Top);
         }
 
         public virtual void Appear() { }
 
-        public virtual void Disappear() {
-            
+        public virtual void Disappear(Transform parent) {
+            SetParent(mTransform);
+            UpdateDepth(PanelDepthType.Bottom);
+            Disappear();
         }
+
+        public virtual void Disappear(){}
 
         public virtual void AddListeners()
         {
@@ -102,12 +105,20 @@ namespace ZStart.Core.View
             Appear();
         }
 
-        public void Close()
+        public void Open(Transform parent, UIParamInfo info)
         {
+            SetParent(parent);
+            UpdateDepth(PanelDepthType.Top);
+            Open(info);
+        }
+
+        public void Close(Transform parent)
+        {
+            
             RemoveListeners();
             Clear();
             _isOpen = false;
-            Disappear();
+            Disappear(parent);
         }
        
         public void SetParent(Transform parent)

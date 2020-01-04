@@ -1,6 +1,5 @@
 ﻿
 using UnityEngine;
-using ZStart.Core.Enum;
 using ZStart.Core.Model;
 namespace ZStart.Core.View
 {
@@ -24,14 +23,10 @@ namespace ZStart.Core.View
         {
             get;
         }
-        void WakenUp();
-
-        void SetParent(Transform parent);
-
-        void UpdateDepth(int depth);
-
-        void UpdateDepth(PanelDepthType depth);
+        void WakenUp(Transform parent);
+       
+        void Open(Transform parent, UIParamInfo info);
         void Open(UIParamInfo info);
-        void Close();
+        void Close(Transform parent);
     }
 }

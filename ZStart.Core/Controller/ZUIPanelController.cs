@@ -333,10 +333,9 @@ namespace ZStart.Core.Controller
                 }
                 else
                 {
-                    panel.WakenUp();
+                    panel.WakenUp(panelParent);
                     StartCoroutine(OpenInspector(tmp, tmp.Info));
                 }
-                panel.UpdateDepth(PanelDepthType.Top);
                 _currentPanel = tmp;
                 current = _currentPanel.name;
                 ZLog.Warning("ShowBackPanel....."+current);
@@ -382,9 +381,7 @@ namespace ZStart.Core.Controller
             if (panel == null)
                 return;
             UpdateHistory();
-            panel.SetParent(panelParent);
-            panel.UpdateDepth(PanelDepthType.Top);
-            panel.Open(param);
+            panel.Open(panelParent, param);
             _currentPanel = panel as ZUIPanel;
             current = _currentPanel.name;
          
@@ -395,11 +392,9 @@ namespace ZStart.Core.Controller
         {
             if (panel == null) return;
             UpdateHistory();
-            panel.WakenUp();
+            panel.WakenUp(panelParent);
             _currentPanel = panel as ZUIPanel;
             current = _currentPanel.name;
-            panel.SetParent(panelParent);
-            panel.UpdateDepth(PanelDepthType.Top);
             StartCoroutine(OpenInspector(_currentPanel, param));
            
         }
@@ -506,9 +501,7 @@ namespace ZStart.Core.Controller
             if (panel == null) return;
             //if (_currentPanel == (ZUIPanel)panel)
             //    _currentPanel = null;
-            panel.SetParent(mTransform);
-            panel.UpdateDepth(PanelDepthType.Bottom);
-            panel.Close();
+            panel.Close(mTransform);
         }
 
         private void CloseWakenPanels()

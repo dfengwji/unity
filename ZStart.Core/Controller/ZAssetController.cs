@@ -17,7 +17,7 @@ namespace ZStart.Core.Controller
         public int bundle;
         public GameObject gameObject;
         public Transform transform;
-        public MonoBehaviour component;
+        public Component component;
         public void Clear()
         {
             name = "";
@@ -603,7 +603,7 @@ namespace ZStart.Core.Controller
                 target.gameObject.SetActive(false);
         }
 
-        private T GetSleepAsset<T>(string path) where T : MonoBehaviour
+        private T GetSleepAsset<T>(string path) where T : Component
         {
             for (int i = 0; i < assetList.Count; i++)
             {
@@ -712,7 +712,7 @@ namespace ZStart.Core.Controller
             return prop;
         }
 
-        private T ActivateAsset<T>(string path, Transform parent,BundleType type)where T:MonoBehaviour
+        public T ActivateAsset<T>(string path, Transform parent,BundleType type)where T:Component
         {
             T prop = GetSleepAsset<T>(path);
             if (prop == null)
@@ -771,7 +771,15 @@ namespace ZStart.Core.Controller
             return prop;
         }
 
-        public T ActivateAsset<T>(string path,string assetName, Transform parent) where T : MonoBehaviour
+        /// <summary>
+        /// 从外部实例化assetbundle
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="path">asset bundle 路径</param>
+        /// <param name="assetName">asset 的名字</param>
+        /// <param name="parent"></param>
+        /// <returns></returns>
+        public T ActivateAsset<T>(string path,string assetName, Transform parent) where T : Component
         {
             T prop = GetSleepAsset<T>(path);
             if (prop == null)
@@ -844,7 +852,7 @@ namespace ZStart.Core.Controller
             target.gameObject.SetActive(false);
         }
 
-        private T CreateAsset<T>(string path, string assetName) where T : MonoBehaviour
+        private T CreateAsset<T>(string path, string assetName) where T : Component
         {
             GameObject obj = ZBundleManager.Instance.GetAsset<GameObject>(path, assetName);
             if (obj == null)
@@ -861,7 +869,7 @@ namespace ZStart.Core.Controller
             return CreateAsset(prefab, assetName, path);
         }
 
-        private T CreateAsset<T>(T prefab, string path) where T : MonoBehaviour
+        private T CreateAsset<T>(T prefab, string path) where T : Component
         {
             if (prefab == null)
             {
@@ -871,7 +879,7 @@ namespace ZStart.Core.Controller
             return CreateAsset(prefab, prefab.name,path);
         }
 
-        private T CreateAsset<T>(T prefab,string uname, string path) where T : MonoBehaviour
+        private T CreateAsset<T>(T prefab,string uname, string path) where T : Component
         {
             if (prefab == null)
             {
