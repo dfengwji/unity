@@ -1,5 +1,4 @@
-﻿using DG.Tweening;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -9,11 +8,10 @@ namespace ZStart.Common.View.Widget
     public class AnimatorButton:GazeButton
     {
         public Text label;
-        public Animator animat;
         public bool isHover = false;
         private Vector3 initPos = Vector3.zero;
         private UnityAction<AnimatorButton> clickFun;
-
+        
         protected override void Start()
         {
             base.Start();
@@ -25,8 +23,7 @@ namespace ZStart.Common.View.Widget
         {
             mRectTransform.position = initPos;
             isHover = false;
-            if (animat != null)
-                animat.Play("BaseLayer.Normal");
+            base.OnDisable();
         }
 
         public override void OnPointerClick(PointerEventData eventData)
@@ -42,20 +39,15 @@ namespace ZStart.Common.View.Widget
                 return;
             base.OnPointerEnter(eventData);
             isHover = true;
-            if (animat != null)
-                animat.Play("BaseLayer.Highlight");
-            //Vector3 direct = AppSession.Instance.GetDirection(mRectTransform);
-            //mRectTransform.DOMove(initPos + direct * distance, 0.15f);
         }
 
         public override void OnPointerExit(PointerEventData eventData)
         {
             if (!isHover)
                 return;
-            base.OnPointerExit(eventData);
-            if (animat != null)
-                animat.Play("BaseLayer.Normal");
-            mRectTransform.DOMove(initPos, 0.15f).OnComplete(() => { isHover = false; });
+            //base.OnPointerExit(eventData);
+            isHover = false;
+            //mRectTransform.DOMove(initPos, 0.15f).OnComplete(() => { isHover = false; });
         }
 
         public void AddClickListener(UnityAction<AnimatorButton> callback)

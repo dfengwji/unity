@@ -7,6 +7,7 @@
         public int type;
         public string uid;
         public string identify;
+        public string name;
         public long id;
         public object param1;
         public object param2;

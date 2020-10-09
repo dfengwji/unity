@@ -7,7 +7,7 @@ namespace ZStart.Common.View.Parts
 {
     public class PageSetParts : Core.ZBehaviourBase
     {
-        public List<AppItemParts> items;
+        public List<AppParts> items;
 
         public Transform[] spawnPoints;
 
@@ -93,7 +93,7 @@ namespace ZStart.Common.View.Parts
 
         public void RemoveItem(string identify)
         {
-            AppItemParts item = GetItem(identify);
+            AppParts item = GetItem(identify);
             if (item == null)
                 return;
             items.Remove(item);
@@ -101,14 +101,14 @@ namespace ZStart.Common.View.Parts
             ZAssetController.Instance.DeActivateAsset(item.mTransform);
         }
 
-        public void AddItem(AppItemParts item)
+        public void AddItem(AppParts item)
         {
             if (items == null)
-                items = new List<AppItemParts>();
+                items = new List<AppParts>();
             items.Add(item);
         }
 
-        public AppItemParts GetItem(string identify)
+        public AppParts GetItem(string identify)
         {
             for (int i = 0; i < items.Count; i++)
             {

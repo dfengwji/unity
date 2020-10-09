@@ -39,7 +39,6 @@ namespace ZStart.Common.View.Parts
         public CanvasRenderer canvasRender;
 
         protected bool isHover = true;
-        public string identify = "";
         protected UnityAction<AppItemParts, OptionType> clickCallFun;
         protected bool isLocked = false;
 
@@ -202,7 +201,7 @@ namespace ZStart.Common.View.Parts
             isLocked = false;
         }
 
-        public virtual void Lock(bool locked)
+        public override void Lock(bool locked)
         {
             isLocked = locked;
             if (locked)

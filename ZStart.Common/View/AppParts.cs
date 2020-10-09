@@ -3,7 +3,7 @@ namespace ZStart.Common.View
 {
     public abstract class AppParts : Core.View.ZUIComponent
     {
-       
+        public string identify = "";
         public virtual float Height
         {
             get
@@ -43,6 +43,11 @@ namespace ZStart.Common.View
         {
             if (isActiveAndEnabled)
                 gameObject.SetActive(false);
+        }
+
+        public virtual void Lock(bool locked)
+        {
+            
         }
     }
 }
