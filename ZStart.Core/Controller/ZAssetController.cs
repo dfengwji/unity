@@ -54,20 +54,21 @@ namespace ZStart.Core.Controller
         public List<AssetInfo> assetDataList;
         public bool isInstant = false;
 
-        public ZBehaviourBase[] extraPrefabs;
+        public List<MonoBehaviour> extraPrefabs;
 
         protected override void Awake()
         {
             base.Awake();
+            extraPrefabs = new List<MonoBehaviour>(10);
             effectList = new List<ZEffectBase>(poolSize);
             activedEffects = new List<ZEffectBase>(poolSize);
             assetList = new List<PoolObjectInfo>(poolSize);
-            assetDataList = new List<AssetInfo>();
-            soundDic = new Dictionary<string, AudioClip>();
-            prefabDic = new Dictionary<string, GameObject>();
+            assetDataList = new List<AssetInfo>(20);
+            soundDic = new Dictionary<string, AudioClip>(20);
+            prefabDic = new Dictionary<string, GameObject>(20);
            
-            spriteList = new List<PoolImageInfo<Sprite>>();
-            textureList = new List<PoolImageInfo<Texture2D>>();
+            spriteList = new List<PoolImageInfo<Sprite>>(20);
+            textureList = new List<PoolImageInfo<Texture2D>>(20);
         }
 
         void Start()
@@ -369,9 +370,16 @@ namespace ZStart.Core.Controller
             }
         }
 
+        public void RegisterPrefab<T>(T prefab) where T: MonoBehaviour
+        {
+            if (prefab == null)
+                return;
+            extraPrefabs.Add(prefab);
+        }
+
         public T GetExtraPrefab<T>() where T : MonoBehaviour
         {
-            for (int i = 0; i < extraPrefabs.Length; i++)
+            for (int i = 0; i < extraPrefabs.Count; i++)
             {
                 T tmp = extraPrefabs[i].GetComponent<T>();
                 if (tmp != null)

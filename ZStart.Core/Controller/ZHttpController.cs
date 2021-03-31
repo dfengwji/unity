@@ -238,58 +238,55 @@ namespace ZStart.Core.Controller
         {
             if (isLoading)
                 return false;
-            else
+            if (requestList.Count > 0)
             {
-                if (requestList.Count > 0)
+                Request info = requestList[0];
+                currentReqURL = info.url;
+
+                isLoading = true;
+
+                UnityWebRequest www = null;
+                if (info.method == UnityWebRequest.kHttpVerbGET)
                 {
-                    Request info = requestList[0];
-                    currentReqURL = info.url;
-
-                    isLoading = true;
-
-                    UnityWebRequest www = null;
-                    if (info.method == UnityWebRequest.kHttpVerbGET)
-                    {
-                        www = UnityWebRequest.Get(info.url);
-                        StartCoroutine(LoadingInspector(www, info));
-
-                        return true;
-                    }
-                    if (info.form != null)
-                    {
-                        www = UnityWebRequest.Post(info.url, info.form);
-                        if (!string.IsNullOrEmpty(Token))
-                            www.SetRequestHeader("Bearer Token", "Bearer " + Token);
-                        requestDataSize += info.form.data.Length;
-                    }
-                    else
-                    {
-                        string json = "";
-                        if (base64)
-                        {
-                            byte[] bt = Encoding.Default.GetBytes(info.data);
-                            json = Convert.ToBase64String(bt);
-                        }
-                        else
-                        {
-                            json = info.data;
-                        }
-                        //ZLog.Log("Request Server...uid = " + info.uid + " ;url = " + info.url + " ; data = " + info.data);
-                        www = UnityWebRequest.Put(info.url, json);
-                        www.method = UnityWebRequest.kHttpVerbPOST;
-                        if (!string.IsNullOrEmpty(Token))
-                            www.SetRequestHeader("Bearer Token", "Bearer " + Token);
-                        www.SetRequestHeader("Content-Type", "application/json");
-                    }
-
+                    www = UnityWebRequest.Get(info.url);
                     StartCoroutine(LoadingInspector(www, info));
 
                     return true;
                 }
+                if (info.form != null)
+                {
+                    www = UnityWebRequest.Post(info.url, info.form);
+                    if (!string.IsNullOrEmpty(Token))
+                        www.SetRequestHeader("Bearer Token", "Bearer " + Token);
+                    requestDataSize += info.form.data.Length;
+                   
+                }
                 else
                 {
-                    return false;
+                    string json = "";
+                    if (base64)
+                    {
+                        byte[] bt = Encoding.Default.GetBytes(info.data);
+                        json = Convert.ToBase64String(bt);
+                    }
+                    else
+                    {
+                        json = info.data;
+                    }
+                    www = UnityWebRequest.Put(info.url, json);
+                    www.method = UnityWebRequest.kHttpVerbPOST;
+                    if (!string.IsNullOrEmpty(Token))
+                        www.SetRequestHeader("Bearer Token", "Bearer " + Token);
+                    www.SetRequestHeader("Content-Type", "application/json");
                 }
+                ZLog.Log("Request Server...uid = " + info.uid + " ;url = " + info.url + " ; data = " + info.data);
+                StartCoroutine(LoadingInspector(www, info));
+
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
 
@@ -319,7 +316,7 @@ namespace ZStart.Core.Controller
                 }
                 if (!info.isLoop)
                 {
-                    Debug.LogWarning(info.uid);
+                    ZLog.Warning("no loop the remove the request that id = "+info.uid);
                     RemoveRequestInfo(info.uid);
                 }
             }
