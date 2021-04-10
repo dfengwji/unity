@@ -1,7 +1,6 @@
 ﻿using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
-using ZStart.Common.View;
 
 namespace ZStart.VRoom.View.Parts
 {

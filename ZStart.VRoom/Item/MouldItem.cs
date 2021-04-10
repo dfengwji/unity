@@ -8,12 +8,13 @@ namespace ZStart.VRoom.Item
         public Transform target;
         public string desc;
         public float speed = 1.2f;
+        public Vector3 direction = Vector3.up;
         public bool isLooking = false;
         private void Update()
         {
             if (isLooking)
             {
-                target.Rotate(Vector3.up, Time.deltaTime * speed);
+                target.Rotate(direction, Time.deltaTime * speed);
             }
         }
 
