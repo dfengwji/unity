@@ -38,9 +38,11 @@ namespace ZStart.Core.Controller
             public string param;
             public string method = UnityWebRequest.kHttpVerbPOST;
             public bool isLoop = false;
+            public bool isBase64 = false;
+            public bool isLog = false;
             public UnityAction<Response> callFun;
 
-            public Request(string id, string uri, string arg, UnityAction<Response> call, bool loop = false)
+            public Request(string id, string uri, string arg, UnityAction<Response> call, bool loop, bool base64, bool log)
             {
                 uid = id;
                 callFun = call;
@@ -49,9 +51,11 @@ namespace ZStart.Core.Controller
                 data = "";
                 param = arg;
                 isLoop = loop;
+                isBase64 = base64;
+                isLog = log;
             }
 
-            public Request(string id, string uri, WWWForm f, string arg, UnityAction<Response> call, bool loop = false)
+            public Request(string id, string uri, WWWForm f, string arg, UnityAction<Response> call, bool loop, bool base64, bool log)
             {
                 uid = id;
                 callFun = call;
@@ -60,9 +64,11 @@ namespace ZStart.Core.Controller
                 data = "";
                 param = arg;
                 isLoop = loop;
+                isBase64 = base64;
+                isLog = log;
             }
 
-            public Request(string id, string uri, string json, string arg, UnityAction<Response> call, bool loop = false)
+            public Request(string id, string uri, string json, string arg, UnityAction<Response> call, bool loop, bool base64, bool log)
             {
                 uid = id;
                 callFun = call;
@@ -71,6 +77,8 @@ namespace ZStart.Core.Controller
                 data = json;
                 param = arg;
                 isLoop = loop;
+                isBase64 = base64;
+                isLog = log;
             }
         }
 
@@ -86,6 +94,7 @@ namespace ZStart.Core.Controller
         private List<Request> loadingList = null;
         private List<Request> failedList = null;
         public bool isLoading = false;
+        public bool isLog = false;
 
         [SerializeField]
         private string currentReqURL = "";
@@ -98,24 +107,24 @@ namespace ZStart.Core.Controller
             }
         }
 
-        public static void Post(string uid, string url, UnityAction<Response> call, bool loop = false)
+        public static void Post(string uid, string url, UnityAction<Response> call, bool loop = false, bool b64 = false, bool log = false)
         {
-            Instance.StartLoad(uid, url, call, UnityWebRequest.kHttpVerbPOST, loop);
+            Instance.StartLoad(uid, url, call, UnityWebRequest.kHttpVerbPOST, loop, b64, log);
         }
 
-        public static void Post(string uid, string url, string json, UnityAction<Response> call, bool loop = false)
+        public static void Post(string uid, string url, string json, UnityAction<Response> call, bool loop = false, bool b64 = false, bool log = false)
         {
-            Instance.StartLoad(uid, url, json, "", call, loop);
+            Instance.StartLoad(uid, url, json, "", call, loop, b64, log);
         }
 
-        public static void Post(string uid, string url, WWWForm form, string param, UnityAction<Response> call)
+        public static void Post(string uid, string url, WWWForm form, string param, UnityAction<Response> call, bool loop = false, bool b64 = false, bool log = false)
         {
-            Instance.StartLoad(uid, url, form, param, call);
+            Instance.StartLoad(uid, url, form, param, call, loop, b64, log);
         }
 
-        public static void Get(string uid, string url, UnityAction<Response> call, bool loop = false)
+        public static void Get(string uid, string url, UnityAction<Response> call, bool loop = false, bool b64 = false, bool log = false)
         {
-            Instance.StartLoad(uid, url, call, UnityWebRequest.kHttpVerbGET, loop);
+            Instance.StartLoad(uid, url, call, UnityWebRequest.kHttpVerbGET, loop, b64, log);
         }
 
         public static void RemoveInfo()
@@ -146,35 +155,35 @@ namespace ZStart.Core.Controller
             failedList = new List<Request>();
         }
 
-        protected void StartLoad(string uid, string url, UnityAction<Response> call, string method, bool loop)
+        protected void StartLoad(string uid, string url, UnityAction<Response> call, string method, bool loop, bool b64, bool log)
         {
             RemoveRequestInfo(uid);
-            Request info = new Request(uid, url, "", call, loop)
+            Request info = new Request(uid, url, "", call, loop, b64, log)
             {
-                method = method
+                method = method,
+                isBase64 = b64,
             };
             requestList.Add(info);
             StartLoadNext();
         }
 
-        protected void StartLoad(string uid, string url, string json, string param, UnityAction<Response> call, bool loop)
+        protected void StartLoad(string uid, string url, string json, string param, UnityAction<Response> call, bool loop, bool b64, bool log)
         {
             RemoveRequestInfo(uid);
-            Request info = new Request(uid, url, json, param, call)
+            Request info = new Request(uid, url, json, param, call, loop, b64, log)
             {
                 method = UnityWebRequest.kHttpVerbPOST,
-                isLoop = loop
             };
             requestList.Add(info);
             StartLoadNext();
         }
 
-        public void StartLoad(string uid, string url, WWWForm form, string param, UnityAction<Response> call)
+        public void StartLoad(string uid, string url, WWWForm form, string param, UnityAction<Response> call,bool loop, bool b64, bool log)
         {
             RemoveRequestInfo(uid);
-            Request info = new Request(uid, url, form, param, call)
+            Request info = new Request(uid, url, form, param, call, loop, b64, log)
             {
-                method = UnityWebRequest.kHttpVerbPOST
+                method = UnityWebRequest.kHttpVerbPOST,
             };
             requestList.Add(info);
             StartLoadNext();
@@ -199,8 +208,7 @@ namespace ZStart.Core.Controller
             if (failedList.Count > 0)
             {
                 Request info = failedList[0];
-
-                StartLoad(info.uid, info.url, info.form, info.param, info.callFun);
+                StartLoad(info.uid, info.url, info.form, info.param, info.callFun, info.isLoop, info.isBase64, info.isLog);
                 failedList.RemoveAt(0);
                 return true;
             }
@@ -221,13 +229,13 @@ namespace ZStart.Core.Controller
                         data = "Request that code is " + info.uid + " and url = " + info.url + " ;msg =  " + msg + "!!!",
                         param = info.param,
                     };
-                    ZLog.Warning("RequestException....." + response.data);
+                    Debug.LogError("RequestException....." + response.data);
                     info.callFun.Invoke(response);
                 }
             }
             else
             {
-                ZLog.Warning("RequestException.....HttpState = " + type + "---" + msg);
+                Debug.LogError("RequestException.....HttpState = " + type + "---" + msg);
             }
 
             currentReqURL = "";
@@ -264,7 +272,7 @@ namespace ZStart.Core.Controller
                 else
                 {
                     string json = "";
-                    if (base64)
+                    if (info.isBase64)
                     {
                         byte[] bt = Encoding.Default.GetBytes(info.data);
                         json = Convert.ToBase64String(bt);
@@ -273,13 +281,13 @@ namespace ZStart.Core.Controller
                     {
                         json = info.data;
                     }
-                    www = UnityWebRequest.Put(info.url, json);
-                    www.method = UnityWebRequest.kHttpVerbPOST;
+                    www = UnityWebRequest.Post(info.url, json);
                     if (!string.IsNullOrEmpty(Token))
                         www.SetRequestHeader("Bearer Token", "Bearer " + Token);
                     www.SetRequestHeader("Content-Type", "application/json");
                 }
-                ZLog.Log("Request Server...uid = " + info.uid + " ;url = " + info.url + " ; data = " + info.data);
+                if(info.isLog)
+                    Debug.Log("Request Server...uid = " + info.uid + " ;url = " + info.url + " ; data = " + info.data);
                 StartCoroutine(LoadingInspector(www, info));
 
                 return true;
@@ -316,7 +324,8 @@ namespace ZStart.Core.Controller
                 }
                 if (!info.isLoop)
                 {
-                    ZLog.Warning("no loop the remove the request that id = "+info.uid);
+                    if(info.isLog)
+                        Debug.Log("no loop the remove the request that id = "+info.uid);
                     RemoveRequestInfo(info.uid);
                 }
             }
@@ -332,7 +341,7 @@ namespace ZStart.Core.Controller
                 {
                     if (!string.IsNullOrEmpty(www.error))
                     {
-                        ZLog.Warning("Http exception...." + info.uid + "---" + www.error);
+                        Debug.LogError("Http exception...." + info.uid + "---" + www.error);
                         response.state = Status.ServerError;
                         response.data = www.error;
 

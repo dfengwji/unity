@@ -14,7 +14,7 @@ namespace ZStart.VRoom.Controller
         public RaycastHit hit;
 
         private GameObject nowLookObj;
-        private InteractiveItem lookingItem;
+        private InteractiveItem[] lookingItems;
 
         public float durationTime = 2.0f;
         public float surfaceOffset = 0.01f;
@@ -45,18 +45,24 @@ namespace ZStart.VRoom.Controller
                 {
                     if (nowLookObj != null)
                     {
-                        var item = nowLookObj.GetComponent<InteractiveItem>();
-                        if (item)
+                        var items = nowLookObj.GetComponents<InteractiveItem>();
+                        if (items != null)
                         {
-                            item.OnGazeOut();
+                            for (int i = 0;i < items.Length;i += 1)
+                            {
+                                items[i].OnGazeOut();
+                            }
                         }
                     }
                     isActived = false;
                     nowLookObj = hit.transform.gameObject;
-                    lookingItem = nowLookObj.GetComponent<InteractiveItem>();
-                    if (lookingItem)
+                    lookingItems = nowLookObj.GetComponents<InteractiveItem>();
+                    if (lookingItems != null)
                     {
-                        lookingItem.OnGazeEnter();
+                        for (int i = 0; i < lookingItems.Length; i += 1)
+                        {
+                            lookingItems[i].OnGazeEnter();
+                        }
                     }
                 }
                 else
@@ -73,10 +79,13 @@ namespace ZStart.VRoom.Controller
                         {
                             reticleImage.fillAmount = 0.0f;
                             countTime = 0;
-                            if (lookingItem && !isActived)
+                            if (lookingItems != null && !isActived)
                             {
                                 isActived = true;
-                                lookingItem.OnGazeActive();
+                                for (int i = 0; i < lookingItems.Length; i += 1)
+                                {
+                                    lookingItems[i].OnGazeActive();
+                                }
                             }
                         }
                         reticleImage.fillAmount = countTime / durationTime;
@@ -85,10 +94,13 @@ namespace ZStart.VRoom.Controller
                     {
                         reticleImage.fillAmount = 0.0f;
                         countTime = 0;
-                        if (lookingItem && !isActived)
+                        if (lookingItems != null && !isActived)
                         {
                             isActived = true;
-                            lookingItem.OnGazeActive();
+                            for (int i = 0; i < lookingItems.Length; i += 1)
+                            {
+                                lookingItems[i].OnGazeActive();
+                            }
                         }
                     }
                 }
@@ -100,12 +112,15 @@ namespace ZStart.VRoom.Controller
                 canvasTarget.localScale = canvasOriginalScale;
                 countTime = 0;
                 reticleImage.fillAmount = 0;
-                if (lookingItem)
+                if (lookingItems != null)
                 {
-                    lookingItem.OnGazeOut();
+                    for (int i = 0; i < lookingItems.Length; i += 1)
+                    {
+                        lookingItems[i].OnGazeOut();
+                    }
                     isActived = false;
                     nowLookObj = null;
-                    lookingItem = null;
+                    lookingItems = null;
                 }
             }
 

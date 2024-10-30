@@ -652,7 +652,6 @@ namespace ZStart.Core.Controller
              for (int i = 0; i < assetList.Count; i++)
             {
                 PoolObjectInfo info = assetList[i];
-               
                 if (info.component != null && !info.gameObject.activeInHierarchy && info.name == typeof(T).Name && info.transform.parent == sleepParent)
                 {
                     if (typeof(T) == info.component.GetType() || info.component.GetType().IsSubclassOf(typeof(T)))
@@ -884,7 +883,7 @@ namespace ZStart.Core.Controller
                 ZLog.Warning("can not create asset that path = " + path + "!!!");
                 return null;
             }
-            return CreateAsset(prefab, prefab.name,path);
+            return CreateAsset(prefab, prefab.name, path);
         }
 
         private T CreateAsset<T>(T prefab,string uname, string path) where T : Component

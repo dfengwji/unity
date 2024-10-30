@@ -50,6 +50,8 @@ namespace ZStart.Core.Controller
             public string package;
             public string url;
             public bool isCache;
+            public bool readable;
+            public string path;
             public UnityAction<ImageInfo> callFun;
 
             public override string ToString()
@@ -83,7 +85,7 @@ namespace ZStart.Core.Controller
         /// <param name="package"></param>
         /// <param name="url"></param>
         /// <param name="flag">logo == -1</param>
-        private void LoadRemote(string identify, string url, bool cache, UnityAction<ImageInfo> fun)
+        private void LoadRemote(string identify, string url, bool cache, bool read, string path, UnityAction<ImageInfo> fun)
         {
             //ZLog.Log("ImageLoadController.....uid = " + appid + "; package = " + package + "; url = " + url + "; index = " + flag + ";path = " + path);
             if (string.IsNullOrEmpty(url))
@@ -101,7 +103,9 @@ namespace ZStart.Core.Controller
                 url = url,
                 package = identify,
                 callFun = fun,
-                isCache = cache
+                isCache = cache,
+                readable = read,
+                path = path
             };
             requestList.Add(info);
 
@@ -119,7 +123,8 @@ namespace ZStart.Core.Controller
                 identify = identify,
                 package = "",
                 url = path,
-                isCache = true
+                isCache = true,
+                readable = true
             };
             ImageInfo tmp = AddImage(bytes, info, "", new Vector2(size.x, size.y));
             if (tmp != null)
@@ -147,7 +152,7 @@ namespace ZStart.Core.Controller
             }
         }
 
-        public void Load(string identify, string url, Vector2 size, UnityAction<ImageInfo> call, bool cache = true)
+        public void Load(string identify, string url, Vector2 size, UnityAction<ImageInfo> call, bool cache = true, bool read = true, string path = "")
         {
             string uid = GetUID(identify, url);
             ImageInfo info = GetImageInfo(uid);
@@ -161,10 +166,15 @@ namespace ZStart.Core.Controller
             }
             if (IsWebPath(url))
             {
-                LoadRemote(identify, url, cache, call);
+                LoadRemote(identify, url, cache, read, path, call);
             }
             else
             {
+                if (!File.Exists(url))
+                {
+                    Debug.LogError("the file not exist by the path that = " + url);
+                    return;
+                }
                 ImageInfo tmp = ReadLocal(identify, url, size);
                 if (tmp != null && call != null)
                     call.Invoke(tmp);
@@ -176,7 +186,7 @@ namespace ZStart.Core.Controller
             Load(identify, url, defaultSize, call, cache);
         }
 
-        public ImageInfo GetImageInfo(string identify, string url, UnityAction<ImageInfo> call, bool cache = true)
+        public ImageInfo GetImageInfo(string identify, string url, UnityAction<ImageInfo> call, bool cache = true, bool read = true)
         {
             string uid = GetUID(identify, url);
             ImageInfo info = GetImageInfo(uid);
@@ -184,7 +194,7 @@ namespace ZStart.Core.Controller
                 return info;
             if (IsWebPath(url))
             {
-                LoadRemote(identify, url, cache, call);
+                LoadRemote(identify, url, cache, read, "", call);
             }
             else
             {
@@ -231,12 +241,12 @@ namespace ZStart.Core.Controller
                     }
                     else
                     {
-                        StartCoroutine(DownloadInspector(info, info.url));
+                        StartCoroutine(DownloadInspector(info));
                     }
                 }
                 else
                 {
-                    StartCoroutine(DownloadInspector(info, null));
+                    StartCoroutine(DownloadInspector(info));
                 }
             }
         }
@@ -261,7 +271,8 @@ namespace ZStart.Core.Controller
         private Texture2D CreateTexture(byte[] bytes, Vector2 size)
         {
             //ZLog.Warning("create texture start...."+Time.realtimeSinceStartup);
-            Texture2D texture = new Texture2D((int)size.x, (int)size.y);
+            Texture2D texture = new Texture2D((int)size.x, (int)size.y, TextureFormat.RGBA32, false);
+            texture.wrapMode = TextureWrapMode.Clamp;
             texture.LoadImage(bytes);
             //ZLog.Warning("create texture end...." + Time.realtimeSinceStartup);
             return texture;
@@ -272,7 +283,7 @@ namespace ZStart.Core.Controller
             isLoading = true;
             using (UnityWebRequest loader = UnityWebRequestTexture.GetTexture("file://" + info.url))
             {
-                loader.downloadHandler = new DownloadHandlerTexture(true);
+                loader.downloadHandler = new DownloadHandlerTexture(info.readable);
                 yield return loader.SendWebRequest();
 
                 if (!string.IsNullOrEmpty(loader.error))
@@ -294,14 +305,14 @@ namespace ZStart.Core.Controller
             LoadNext();
         }
 
-        private IEnumerator DownloadInspector(RequestInfo info, string path)
+        private IEnumerator DownloadInspector(RequestInfo info)
         {
             isLoading = true;
             UnityWebRequest loader = null;
             //ZLog.Warning("LoadInspector...." + info.url + "---"+info.screenIdx);
             using (loader = UnityWebRequestTexture.GetTexture(info.url))
             {
-                DownloadHandlerTexture texHandler = new DownloadHandlerTexture(true);
+                DownloadHandlerTexture texHandler = new DownloadHandlerTexture(info.readable);
                 loader.disposeDownloadHandlerOnDispose = true;
                 loader.downloadHandler = texHandler;
                 yield return loader.SendWebRequest();
@@ -315,7 +326,7 @@ namespace ZStart.Core.Controller
                 {
 
                     //Texture2D tex = DownloadHandlerTexture.GetContent(loader);
-                    AddImage(texHandler.data, info, path, new Vector2(texHandler.texture.width, texHandler.texture.height));
+                    AddImage(texHandler.data, info, info.path, new Vector2(texHandler.texture.width, texHandler.texture.height));
                 }
             }
             RemoveRequest(info.uid);
