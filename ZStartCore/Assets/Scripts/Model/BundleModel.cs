@@ -41,6 +41,7 @@ namespace ZStart.Core.Model
     public struct BundleInfo
     {
         public BundleType type;
+        public string uid;
         public string url;
         public string path;
         public uint version;

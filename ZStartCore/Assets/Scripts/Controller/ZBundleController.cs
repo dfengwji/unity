@@ -21,12 +21,15 @@ namespace ZStart.Core.Controller
     public class BundleLoadInfo
     {
         public uint id;
+        public string uid;
         public string path = "";
         public string downURL = "";
         public BundleType type = BundleType.Unknow;
         public UnityAction<string, bool> completeFun;
-        public BundleLoadInfo(string path, BundleType kind)
+      
+        public BundleLoadInfo(string uuid, string path, BundleType kind)
         {
+            uid = uuid;
             this.path = path;
             type = kind;
         }
@@ -36,6 +39,16 @@ namespace ZStart.Core.Controller
             get
             {
                 return string.IsNullOrEmpty(downURL) ? false : true;
+            }
+        }
+
+        public string UUID
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(uid))
+                    return uid;
+                return path;
             }
         }
     }
@@ -82,7 +95,7 @@ namespace ZStart.Core.Controller
                 return;
             if (!HasLoadInfo(savePath))
             {
-                BundleLoadInfo info = new BundleLoadInfo(savePath, type)
+                BundleLoadInfo info = new BundleLoadInfo(savePath, savePath, type)
                 {
                     completeFun = complete,
                     downURL = url
@@ -100,7 +113,24 @@ namespace ZStart.Core.Controller
                 return;
             if (!HasLoadInfo(path))
             {
-                BundleLoadInfo info = new BundleLoadInfo(path, type)
+                BundleLoadInfo info = new BundleLoadInfo(path, path, type)
+                {
+                    completeFun = complete
+                };
+                requestList.Add(info);
+            }
+            totalLength = requestList.Count;
+            if (state != BundleLoadState.InProgress)
+                LoadNext();
+        }
+
+        public void LoadBy(string uid, string path, BundleType type, UnityAction<string, bool> complete = null)
+        {
+            if (string.IsNullOrEmpty(path) || !File.Exists(path))
+                return;
+            if (!HasLoadInfo(path))
+            {
+                BundleLoadInfo info = new BundleLoadInfo(uid, path, type)
                 {
                     completeFun = complete
                 };
@@ -158,7 +188,7 @@ namespace ZStart.Core.Controller
         {
             if (state == BundleLoadState.InProgress || list == null)
                 return;
-            ZLog.Log("LoadBundles ..................num = " + list.Length);
+            Debug.LogWarning("LoadBundles ..................num = " + list.Length);
             state = BundleLoadState.Failure;
             loadIndex = 0;
             requestList.Clear();
@@ -167,7 +197,7 @@ namespace ZStart.Core.Controller
                 BundleInfo model = list[i];
                 if (!HasLoadInfo(model.path))
                 {
-                    BundleLoadInfo info = new BundleLoadInfo(model.path, model.type)
+                    BundleLoadInfo info = new BundleLoadInfo(model.uid, model.path, model.type)
                     {
                         id = model.id,
                         downURL = model.url
@@ -217,7 +247,7 @@ namespace ZStart.Core.Controller
             {
                 AssetBundle bundle = request.assetBundle;
                 if (bundle != null)
-                    ZBundleManager.Instance.AddBundle(info.path, info.type, bundle);
+                    ZBundleManager.Instance.AddBundle(info.UUID, info.type, bundle);
                 if (info.completeFun != null)
                     info.completeFun.Invoke(info.path, true);
             }
@@ -274,7 +304,7 @@ namespace ZStart.Core.Controller
                     AssetBundle bundle = request.assetBundle;
                     ZLog.Warning("read asset bundle success that path = " + info.path);
                     if (bundle != null)
-                        ZBundleManager.Instance.AddBundle(info.path, info.type, bundle);
+                        ZBundleManager.Instance.AddBundle(info.UUID, info.type, bundle);
                     if (info.completeFun != null)
                         info.completeFun.Invoke(info.path, true);
                 }
